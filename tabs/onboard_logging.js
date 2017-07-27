@@ -4,7 +4,6 @@ var
     sdcardTimer;
 
 TABS.onboard_logging = {
-    available: false,
     blockSize: 128,
 
     BLOCK_SIZE: 4096,
@@ -16,40 +15,27 @@ TABS.onboard_logging.initialize = function (callback) {
         self = this,
         saveCancelled, eraseCancelled;
 
-    if (GUI.active_tab != 'onboard_logging') {
+    if (GUI.active_tab !== 'onboard_logging') {
         GUI.active_tab = 'onboard_logging';
     }
 
     if (CONFIGURATOR.connectionValid) {
-        // Blackbox was introduced in 1.5.0, dataflash API was introduced in 1.8.0, BLACKBOX/SDCARD MSP APIs in 1.11.0
-        TABS.onboard_logging.available = semver.gte(CONFIG.flightControllerVersion, "1.5.0");
-        
-        if (!TABS.onboard_logging.available) {
-            load_html();
-            return;
-        }
-        
-        MSP.send_message(MSPCodes.MSP_BF_CONFIG, false, false, function() {
-            if (semver.gte(CONFIG.flightControllerVersion, "1.8.0")) {
-                MSP.send_message(MSPCodes.MSP_DATAFLASH_SUMMARY, false, false, function() {
-                    if (semver.gte(CONFIG.flightControllerVersion, "1.11.0")) {
-                        MSP.send_message(MSPCodes.MSP_SDCARD_SUMMARY, false, false, function() {
-                            MSP.send_message(MSPCodes.MSP_BLACKBOX_CONFIG, false, false, function() { 
-                            	MSP.send_message(MSPCodes.MSP_ADVANCED_CONFIG, false, false, load_html);
-                            });
+
+        MSP.send_message(MSPCodes.MSP_FEATURE_CONFIG, false, false, function() {
+            MSP.send_message(MSPCodes.MSP_DATAFLASH_SUMMARY, false, false, function() {
+                MSP.send_message(MSPCodes.MSP_SDCARD_SUMMARY, false, false, function() {
+                    MSP.send_message(MSPCodes.MSP_BLACKBOX_CONFIG, false, false, function() { 
+                        MSP.send_message(MSPCodes.MSP_ADVANCED_CONFIG, false, false, function() {
+                            MSP.send_message(MSPCodes.MSP_NAME, false, false, load_html);
                         });
-                    } else {
-                        load_html();
-                    }
+                    });
                 });
-            } else {
-                load_html();
-            }
+            });
         });
     }
     
     function gcd(a, b) {
-        if (b == 0)
+        if (b === 0)
             return a;
         
         return gcd(b, a % b);
@@ -100,11 +86,8 @@ TABS.onboard_logging.initialize = function (callback) {
              * 
              * The best we can do on those targets is check the BLACKBOX feature bit to identify support for Blackbox instead.
              */
-            if (BLACKBOX.supported || DATAFLASH.supported 
-                    || semver.gte(CONFIG.flightControllerVersion, "1.5.0") && semver.lte(CONFIG.flightControllerVersion, "1.10.0") && BF_CONFIG.features.isEnabled('BLACKBOX')) {
+            if ((BLACKBOX.supported || DATAFLASH.supported) && (semver.gte(CONFIG.apiVersion, "1.33.0") || FEATURE_CONFIG.features.isEnabled('BLACKBOX'))) {
                 blackboxSupport = 'yes';
-            } else if (semver.gte(CONFIG.flightControllerVersion, "1.5.0") && semver.lte(CONFIG.flightControllerVersion, "1.10.0")) {
-                blackboxSupport = 'maybe';
             } else {
                 blackboxSupport = 'no';
             }
@@ -116,9 +99,9 @@ TABS.onboard_logging.initialize = function (callback) {
                 .toggleClass("sdcard-supported", SDCARD.supported)
                 .toggleClass("blackbox-config-supported", BLACKBOX.supported)
                 
-                .toggleClass("blackbox-supported", blackboxSupport == 'yes')
-                .toggleClass("blackbox-maybe-supported", blackboxSupport == 'maybe')
-                .toggleClass("blackbox-unsupported", blackboxSupport == 'no');
+                .toggleClass("blackbox-supported", blackboxSupport === 'yes')
+                .toggleClass("blackbox-maybe-supported", blackboxSupport === 'maybe')
+                .toggleClass("blackbox-unsupported", blackboxSupport === 'no');
 
             if (dataflashPresent) {
                 // UI hooks
@@ -131,21 +114,32 @@ TABS.onboard_logging.initialize = function (callback) {
                 $('.tab-onboard_logging a.save-flash-cancel').click(flash_save_cancel);
                 $('.tab-onboard_logging a.save-flash-dismiss').click(dismiss_saving_dialog);
             }
-            
+
+            var deviceSelect = $(".blackboxDevice select");
+            var loggingRatesSelect = $(".blackboxRate select");
+
             if (BLACKBOX.supported) {
                 $(".tab-onboard_logging a.save-settings").click(function() {
-                    var rate = $(".blackboxRate select").val().split('/');
+                    var rate = loggingRatesSelect.val().split('/');
                     
                     BLACKBOX.blackboxRateNum = parseInt(rate[0], 10);
                     BLACKBOX.blackboxRateDenom = parseInt(rate[1], 10);
-                    BLACKBOX.blackboxDevice = parseInt($(".blackboxDevice select").val(), 10);
+                    BLACKBOX.blackboxDevice = parseInt(deviceSelect.val(), 10);
                     
                     MSP.send_message(MSPCodes.MSP_SET_BLACKBOX_CONFIG, mspHelper.crunch(MSPCodes.MSP_SET_BLACKBOX_CONFIG), false, save_to_eeprom);
                 });
             }
             
-            populateLoggingRates();
-            populateDevices();
+            populateLoggingRates(loggingRatesSelect);
+            populateDevices(deviceSelect);
+
+            deviceSelect.change(function() {
+                if ($(this).val() === "0") {
+                    $("div.blackboxRate").hide();
+                } else {
+                    $("div.blackboxRate").show();
+                }
+            }).change();
             
             update_html();
             
@@ -153,22 +147,32 @@ TABS.onboard_logging.initialize = function (callback) {
         });
     }
     
-    function populateDevices() {
-        var
-            deviceSelect = $(".blackboxDevice select").empty();
-        
-        deviceSelect.append('<option value="0">Serial port</option>');
-        if (DATAFLASH.ready) {
-            deviceSelect.append('<option value="1">On-board dataflash chip</option>');
+    function populateDevices(deviceSelect) {
+        deviceSelect.empty();
+
+        if (semver.gte(CONFIG.apiVersion, "1.33.0")) {
+            deviceSelect.append('<option value="0">' + chrome.i18n.getMessage('blackboxLoggingNone') + '</option>');
+            if (DATAFLASH.ready) {
+                deviceSelect.append('<option value="1">' + chrome.i18n.getMessage('blackboxLoggingFlash') + '</option>');
+            }
+            if (SDCARD.supported) {
+                deviceSelect.append('<option value="2">' + chrome.i18n.getMessage('blackboxLoggingSdCard') + '</option>');
+            }
+            deviceSelect.append('<option value="3">' + chrome.i18n.getMessage('blackboxLoggingSerial') + '</option>');
+        } else {
+            deviceSelect.append('<option value="0">' + chrome.i18n.getMessage('blackboxLoggingSerial') + '</option>');
+            if (DATAFLASH.ready) {
+                deviceSelect.append('<option value="1">' + chrome.i18n.getMessage('blackboxLoggingFlash') + '</option>');
+            }
+            if (SDCARD.supported) {
+                deviceSelect.append('<option value="2">' + chrome.i18n.getMessage('blackboxLoggingSdCard') + '</option>');
+            }
         }
-        if (SDCARD.supported) {
-            deviceSelect.append('<option value="2">On-board SD card slot</option>');
-        }
-        
+
         deviceSelect.val(BLACKBOX.blackboxDevice);
     }
     
-    function populateLoggingRates() {
+    function populateLoggingRates(loggingRatesSelect) {
         
         // Offer a reasonable choice of logging rates (if people want weird steps they can use CLI)
         var 
@@ -182,17 +186,15 @@ TABS.onboard_logging.initialize = function (callback) {
                  {num: 1, denom: 7},
                  {num: 1, denom: 8},
                  {num: 1, denom: 16},
-                 {num: 1, denom: 32},
-            ],
-            loggingRatesSelect = $(".blackboxRate select");
-        
-        var addedCurrentValue = false;
+                 {num: 1, denom: 32}
+            ];
+
         var pidRate = 8000 / PID_ADVANCED_CONFIG.gyro_sync_denom / PID_ADVANCED_CONFIG.pid_process_denom; 
         for (var i = 0; i < loggingRates.length; i++) {
         	var loggingRate = Math.round(pidRate / loggingRates[i].denom);
         	var loggingRateUnit = " Hz";
-        	if (loggingRate != Infinity) {
-                if (gcd(loggingRate, 1000)==1000) {
+        	if (loggingRate !== Infinity) {
+                if (gcd(loggingRate, 1000) === 1000) {
                     loggingRate /= 1000;
                     loggingRateUnit = " KHz";	
                 }
@@ -251,12 +253,12 @@ TABS.onboard_logging.initialize = function (callback) {
         update_bar_width($(".tab-onboard_logging .sdcard-other"), SDCARD.totalSizeKB - SDCARD.freeSizeKB, SDCARD.totalSizeKB, "Unavailable space", true);
         update_bar_width($(".tab-onboard_logging .sdcard-free"), SDCARD.freeSizeKB, SDCARD.totalSizeKB, "Free space for logs", true);
 
-        $(".btn a.erase-flash, .btn a.save-flash").toggleClass("disabled", DATAFLASH.usedSize == 0);
+        $(".btn a.erase-flash, .btn a.save-flash").toggleClass("disabled", DATAFLASH.usedSize === 0);
         
         $(".tab-onboard_logging")
-            .toggleClass("sdcard-error", SDCARD.state == MSP.SDCARD_STATE_FATAL)
-            .toggleClass("sdcard-initializing", SDCARD.state == MSP.SDCARD_STATE_CARD_INIT || SDCARD.state == MSP.SDCARD_STATE_FS_INIT)
-            .toggleClass("sdcard-ready", SDCARD.state == MSP.SDCARD_STATE_READY);
+            .toggleClass("sdcard-error", SDCARD.state === MSP.SDCARD_STATE_FATAL)
+            .toggleClass("sdcard-initializing", SDCARD.state === MSP.SDCARD_STATE_CARD_INIT || SDCARD.state === MSP.SDCARD_STATE_FS_INIT)
+            .toggleClass("sdcard-ready", SDCARD.state === MSP.SDCARD_STATE_READY);
         
         switch (SDCARD.state) {
             case MSP.SDCARD_STATE_NOT_PRESENT:
@@ -292,16 +294,6 @@ TABS.onboard_logging.initialize = function (callback) {
     }
     
     // IO related methods
-    function zeroPad(value, width) {
-        value = "" + value;
-        
-        while (value.length < width) {
-            value = "0" + value;
-        }
-        
-        return value;
-    }
-    
     function flash_save_cancel() {
         saveCancelled = true;
     }
@@ -340,7 +332,7 @@ TABS.onboard_logging.initialize = function (callback) {
     function flash_save_begin() {
         if (GUI.connected_to) {
             if (BOARD.find_board_definition(CONFIG.boardIdentifier).vcp) {
-                if (semver.gte(CONFIG.flightControllerVersion, "3.1.0")) {
+                if (semver.gte(CONFIG.apiVersion, "1.31.0")) {
                     self.blockSize = self.VCP_BLOCK_SIZE;
                 } else {
                     self.blockSize = self.VCP_BLOCK_SIZE_3_0;
@@ -359,7 +351,7 @@ TABS.onboard_logging.initialize = function (callback) {
                     show_saving_dialog();
                     
                     function onChunkRead(chunkAddress, chunkDataView) {
-                        if (chunkDataView != null) {
+                        if (chunkDataView !== null) {
                             // Did we receive any data?
                             if (chunkDataView.byteLength > 0) {
                                 nextAddress += chunkDataView.byteLength;
@@ -400,24 +392,20 @@ TABS.onboard_logging.initialize = function (callback) {
     }
     
     function prepare_file(onComplete) {
-        var 
-            date = new Date(),
-            filename = 'BLACKBOX_LOG_' + date.getFullYear()
-                + zeroPad(date.getMonth() + 1, 2)
-                + zeroPad(date.getDate(), 2)
-                + '_' + zeroPad(date.getHours(), 2)
-                + zeroPad(date.getMinutes(), 2) 
-                + zeroPad(date.getSeconds(), 2)
-                + '.BFL';
         
+        var prefix = 'BLACKBOX_LOG';
+        var suffix = 'BBL';
+
+        var filename = generateFilename(prefix, suffix);
+
         chrome.fileSystem.chooseEntry({type: 'saveFile', suggestedName: filename, 
-                accepts: [{extensions: ['BFL']}]}, function(fileEntry) {
+                accepts: [{extensions: [suffix]}]}, function(fileEntry) {
             var error = chrome.runtime.lastError;
             
             if (error) {
                 console.error(error.message);
                 
-                if (error.message != "User cancelled") {
+                if (error.message !== "User cancelled") {
                     GUI.log(chrome.i18n.getMessage('dataflashFileWriteFailed'));
                 }
                 return;

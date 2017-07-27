@@ -149,9 +149,16 @@ $(document).ready(function () {
                     case 'osd':
                         TABS.osd.initialize(content_ready);
                         break;
+                    case 'power':
+                        TABS.power.initialize(content_ready);
+                        break;
                     case 'setup':
                         TABS.setup.initialize(content_ready);
                         break;
+                    case 'setup_osd':
+                        TABS.setup_osd.initialize(content_ready);
+                        break;
+                        
                     case 'configuration':
                         TABS.configuration.initialize(content_ready);
                         break;
@@ -228,8 +235,8 @@ $(document).ready(function () {
                         chrome.storage.local.set({'permanentExpertMode': checked});
 
                         $('input[name="expertModeCheckbox"]').prop('checked', checked).change();
-                        if (BF_CONFIG) {
-                            updateTabList(BF_CONFIG.features);
+                        if (FEATURE_CONFIG) {
+                            updateTabList(FEATURE_CONFIG.features);
                         }
 
                     }).change();
@@ -362,8 +369,8 @@ $(document).ready(function () {
         }
 
         $('input[name="expertModeCheckbox"]').change(function () {
-            if (BF_CONFIG) {
-                updateTabList(BF_CONFIG.features);
+            if (FEATURE_CONFIG) {
+                updateTabList(FEATURE_CONFIG.features);
             }
         }).change();
     });
@@ -414,6 +421,7 @@ function bytesToSize(bytes) {
 function isExpertModeEnabled() {
     return $('input[name="expertModeCheckbox"]').is(':checked');
 }
+
 function updateTabList(features) {
     if (features.isEnabled('GPS') && isExpertModeEnabled()) {
         $('#tabs ul.mode-connected li.tab_gps').show();
@@ -457,21 +465,48 @@ function updateTabList(features) {
         $('#tabs ul.mode-connected li.tab_logging').hide();
     }
 
-    if (features.isEnabled('BLACKBOX')) {
-        $('#tabs ul.mode-connected li.tab_onboard_logging').show();
-    } else {
-        $('#tabs ul.mode-connected li.tab_onboard_logging').hide();
-    }
-
     if (features.isEnabled('TRANSPONDER')) {
         $('#tabs ul.mode-connected li.tab_transponder').show();
     } else {
         $('#tabs ul.mode-connected li.tab_transponder').hide();
     }
-
     if (features.isEnabled('OSD')) {
         $('#tabs ul.mode-connected li.tab_osd').show();
     } else {
         $('#tabs ul.mode-connected li.tab_osd').hide();
     }
 }
+
+function zeroPad(value, width) {
+    value = "" + value;
+
+    while (value.length < width) {
+        value = "0" + value;
+    }
+
+    return value;
+}
+
+function generateFilename(prefix, suffix) {
+    var date = new Date();
+    var filename = prefix;
+
+    if (CONFIG) {
+        if (CONFIG.flightControllerIdentifier) {
+        	filename = CONFIG.flightControllerIdentifier + '_' + filename; 	
+        }
+        if(CONFIG.name && CONFIG.name.trim() !== '') {
+        	filename = filename + '_' + CONFIG.name.trim().replace(' ', '_');
+        }
+    }
+
+    filename = filename + '_' + date.getFullYear()
+        + zeroPad(date.getMonth() + 1, 2)
+        + zeroPad(date.getDate(), 2)
+        + '_' + zeroPad(date.getHours(), 2)
+        + zeroPad(date.getMinutes(), 2)
+        + zeroPad(date.getSeconds(), 2);
+
+    return filename + '.' + suffix;
+}
+

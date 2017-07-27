@@ -73,6 +73,9 @@
     "tabSetup": {
         "message": "Setup"
     },
+    "tabSetupOSD": {
+        "message": "OSD Setup"
+    },
     "tabConfiguration": {
         "message": "Configuration"
     },
@@ -99,6 +102,9 @@
     },
     "tabOsd": {
         "message": "OSD"
+    },
+    "tabPower": {
+        "message": "Power & Battery"
     },
     "tabGPS": {
         "message": "GPS"
@@ -161,10 +167,13 @@
         "message": "No configuration received within <span style=\"color: red\">10 seconds</span>, communication <span style=\"color: red\">failed</span>"
     },
     "firmwareVersionNotSupported": {
-        "message": "This firmware version is <span style=\"color: red\">not supported</span>. Please upgrade to firmware that supports api version <strong>$1</strong> or higher. Use CLI for backup before flashing. CLI backup/restore procedure is in the documention."
+        "message": "This firmware version is <span style=\"color: red\">not supported</span>. Please upgrade to firmware that supports api version <strong>$1</strong> or higher. Use CLI for backup before flashing. CLI backup/restore procedure is in the documention.<br />Alternatively download and use an old version of the configurator if you are not ready to upgrade."
     },
     "firmwareTypeNotSupported": {
-        "message": "Non - Betaflight firmware is <span style=\"color: red\">not supported</span>. Please note that this tool is designed to support the advanced features of the Betaflight firmware, and does not support use with other types of firmware, except for in CLI mode."
+        "message": "Non - Cleanflight/Betaflight firmware is <span style=\"color: red\">not supported</span>, except for CLI mode."
+    },
+    "firmwareUpgradeRequired": {
+        "message": "The firmware on this device needs upgrading to a newer version. Use CLI for backup before flashing. CLI backup/restore procedure is in the documention.<br />Alternatively download and use an old version of the configurator if you are not ready to upgrade."
     },
 
     "tabSwitchConnectionRequired": {
@@ -181,10 +190,13 @@
         "message": "Firmware Version: <strong>$1</strong>"
     },
     "apiVersionReceived": {
-        "message": "MultiWii API version <span style=\"color: #ffbb00\">received</span> - <strong>$1</strong>"
+        "message": "MultiWii API version: <strong>$1</strong>"
     },
     "uniqueDeviceIdReceived": {
-        "message": "Unique device ID <span style=\"color: #ffbb00\">received</span> - <strong>0x$1</strong>"
+        "message": "Unique device ID: <strong>0x$1</strong>"
+    },
+    "craftNameReceived": {
+        "message": "Craft name: <strong>$1</strong>"
     },
     "boardInfoReceived": {
         "message": "Board: <strong>$1</strong>, version: <strong>$2</strong>"
@@ -280,7 +292,7 @@
         "message": "The Betaflight wiki is a great resource for information, it can be found <a href=\"https://github.com/betaflight/betaflight/wiki\" target=\"_blank\">here</a>."
     },
     "defaultDocumentation2": {
-        "message": "The release notes for the firmware can be read at github releases page, <a href=\"https://github.com/Betaflight/Betaflight/releases\" target=\"_blank\">here</a>."
+        "message": "The release notes for the firmware can be read at GitHub releases page, <a href=\"https://github.com/Betaflight/Betaflight/releases\" target=\"_blank\">here</a>."
     },
     "defaultSupportHead": {
         "message": "Support"
@@ -292,26 +304,26 @@
         "message": "Developer"
     },
     "defaultSupport": {
-        "message": "For support please search the forums first or contact your vendor.<br /><br />"
+        "message": "For support please search the forums and wiki first or contact your vendor.<br /><br />"
     },
     "defaultSupport1": {
         "message": "<a href=\"http://www.rcgroups.com/forums/showthread.php?t=2464844&page=1\" target=\"_blank\">RC Groups thread</a>"
     },
     "defaultSupport2": {
-        "message": "<a href=\"http://www.multiwii.com/forum/viewtopic.php?f=23&t=5149\" target=\"_blank\">MultiWii forums thread</a>"
+        "message": "<a href=\"http://betaflight.info\" target=\"_blank\">Betaflight Wiki</a>"
     },
     "defaultSupport3": {
-        "message": "<a href=\"https://github.com/Betaflight\" target=\"_blank\">GitHub</a>"
+        "message": "<a href=\"https://www.youtube.com/playlist?list=PLwoDb7WF6c8kdK6yHr7vhsU9iRTr5HxP4\" target=\"_blank\">Joshua Bardwell Betaflight Videos</a>"
     },
     "defaultSupport4": {
-        "message": "<a href=\"https://gitter.im/betaflight/betaflight\" target=\"_blank\">Betaflight on Gitter</a>"
+        "message": "<a href=\"https://github.com/Betaflight\" target=\"_blank\">GitHub</a>"
     },
     "defaultSupport5": {
-        "message": "<a href=\"https://gitter.im/betaflight/betaflight\" target=\"_blank\">Join on Gitter</a>"
+        "message": "<a href=\"http://betaflight.tk/slack\" target=\"_blank\">Betaflight devs on slack</a>"
     },
 
     "initialSetupBackupAndRestoreApiVersion": {
-        "message": "<span style=\"color: red\">Backup and restore functionality disabled.</span>  You have firmware with API version <span style=\"color: red\">$1</span>, backup and restore requires <span style=\"color: #ffbb00\">$2</span>.  Please backup your settings via the CLI, see Betaflight documentation for procedure."
+        "message": "<span style=\"color: red\">Backup and restore functionality disabled.</span> You have firmware with API version <span style=\"color: red\">$1</span>, backup and restore requires <span style=\"color: #ffbb00\">$2</span>.  Please backup your settings via the CLI, see Betaflight documentation for procedure."
     },
     "initialSetupButtonCalibrateAccel": {
         "message": "Calibrate Accelerometer"
@@ -457,7 +469,9 @@
     "initialSetupEepromSaved": {
         "message": "EEPROM <span style=\"color: #ffbb00\">saved</span>"
     },
-
+    "featureNone": {
+        "message": "&lt;Select One&gt;"
+    },
     "featureRX_PPM": {
         "message": "PPM RX input"
     },
@@ -531,7 +545,7 @@
         "message": "Configure via the BlackBox tab after enabling."
     },
     "featureESC_SENSOR": {
-        "message": "Use KISS ESC 24A telemetry as sensor"
+        "message": "Use KISS/BLHeli_32 ESC telemetry as sensor"
     },
     "featureCHANNEL_FORWARDING": {
         "message": "Forward aux channels to servo outputs"
@@ -548,8 +562,20 @@
     "featureSUPEREXPO_RATES": {
         "message": "Super Expo Rates"
     },
+    "featureSDCARD": {
+        "message": "SDCard support (for logging)"
+    },
     "featureOSD": {
         "message": "On Screen Display"
+    },
+    "featureVTX": {
+        "message": "Video Transmitter"
+    },
+    "featureANTI_GRAVITY": {
+        "message": "Temporary boost I-Term on high throttle changes"
+    },
+    "featureDYNAMIC_FILTER": {
+        "message": "Dynamic gyro notch filtering"
     },
     "featureFAILSAFE": {
         "message": "Enable Failsafe Stage 2"
@@ -636,70 +662,34 @@
         "message": "Magnetometer Declination [deg]"
     },
     "configurationAutoDisarmDelay": {
-        "message": "Disarm motors after set delay(Seconds) (Requires MOTOR_STOP feature)"
+        "message": "Disarm motors after set delay [seconds] (Requires MOTOR_STOP feature)"
     },
     "configurationDisarmKillSwitch": {
         "message": "Disarm motors regardless of throttle value (When arming via AUX channel)"
     },
     "configurationDigitalIdlePercent": {
-        "message": "Motor Idle Throttle Value (percent)"
+        "message": "Motor Idle Throttle Value [percent]"
     },
     "configurationDigitalIdlePercentHelp": {
         "message": "This is the 'idle' value in percent of maximum throttle that is sent to the ESCs when the craft is armed and the trottle stick is at minimum position. Increase the percent value to gain more idle speed."
     },
     "configurationThrottleMinimum": {
-        "message": "Motor Idle Throttle Value (absolute / percent)"
+        "message": "Minimum Throttle (Lowest ESC value when armed)"
     },
     "configurationThrottleMinimumHelp": {
-        "message": "This is the 'idle' value (absolute / as a percentage of the throttle range) that is sent to the ESCs when the craft is armed and the trottle stick is at minimum position. Increase the value or to gain more idle speed."
+        "message": "This is the 'idle' value that is sent to the ESCs when the craft is armed and the trottle stick is at minimum position. Increase the value or to gain more idle speed. Also raise the value in case of desyncs!"
     },
     "configurationThrottleMaximum": {
-        "message": "Maximum Throttle"
+        "message": "Maximum Throttle (Highest ESC value when armed)"
     },
     "configurationThrottleMinimumCommand": {
-        "message": "Minimum Command"
+        "message": "Minimum Command (ESC value when disarmed)"
     },
     "configurationThrottleMinimumCommandHelp": {
         "message": "This is the value that is sent to the ESCs when the craft is disarmed. Set this to a value that has the motors stopped (1000 for most ESCs)."
     },
-    "configurationBatteryVoltage": {
-        "message": "Battery Voltage"
-    },
-    "configurationBatteryCurrent": {
-        "message": "Battery Current"
-    },
-    "configurationBatteryMeterType": {
-        "message": "Battery Meter Type"
-    },
-    "configurationBatteryMinimum": {
-        "message": "Minimum Cell Voltage"
-    },
-    "configurationBatteryMaximum": {
-        "message": "Maximum Cell Voltage"
-    },
-    "configurationBatteryWarning": {
-        "message": "Warning Cell Voltage"
-    },
-    "configurationBatteryScale": {
-        "message": "Voltage Scale"
-    },
-    "configurationCurrentMeterType": {
-        "message": "Current Meter Type"
-    },
-    "configurationCurrent": {
-        "message": "Current Sensor"
-    },
-    "configurationCurrentScale": {
-        "message": "Scale the output voltage to milliamps [1/10th mV/A]"
-    },
-    "configurationCurrentOffset": {
-        "message": "Offset in millivolt steps"
-    },
-    "configurationBatteryMultiwiiCurrent": {
-        "message": "Enable support for legacy Multiwii MSP current output"
-    },
     "configuration3d": {
-        "message": "3D"
+        "message": "3D ESC/Motor Features"
     },
     "configuration3dDeadbandLow": {
         "message": "3D Deadband Low"
@@ -720,10 +710,10 @@
         "message": "Flight Controller Loop Time"
     },
     "configurationCalculatedCyclesSec": {
-        "message": "Cycles/Sec (Hz)"
+        "message": "Cycles/Sec [Hz]"
     },
     "configurationLoopTimeHelp": {
-        "message": "<strong>Note:</strong> Make sure your FC is capable to operate on these speeds! Check CPU and cycletime stability. Changing this may require PID re-tuning. TIP: Disable Accelerometer and other sensors to gain more performance."
+        "message": "<strong>Note:</strong> Make sure your FC is able to operate at these speeds! Check CPU and cycletime stability. Changing this may require PID re-tuning. TIP: Disable Accelerometer and other sensors to gain more performance."
     },
     "configurationGPS": {
         "message": "GPS"
@@ -736,6 +726,12 @@
     },
     "configurationGPSubxSbas": {
         "message": "Ground Assistance Type"
+    },
+    "configurationGPSAutoBaud": {
+        "message": "Auto Baud"
+    },
+    "configurationGPSAutoConfig": {
+        "message": "Auto Config"
     },
     "configurationGPSHelp": {
         "message": "<strong>Note:</strong> Remember to configure a Serial Port (via Ports tab) when using GPS feature."
@@ -751,19 +747,19 @@
     },
 
     "portsIdentifier": {
-      "message": "Port Identifier"
+        "message": "Identifier"
     },
     "portsConfiguration": {
-      "message": "Configuration"
+        "message": "Configuration/MSP"
     },
     "portsSerialRx": {
-      "message": "Serial Rx"
+        "message": "Serial Rx"
     },
     "portsSensorIn": {
-      "message": "Sensor Input"
+        "message": "Sensor Input"
     },
     "portsTelemetryOut": {
-      "message": "Telemetry Output"
+        "message": "Telemetry Output"
     },
     "portsPeripherals": {
         "message": "Peripherals"
@@ -807,6 +803,18 @@
     "portsFunction_TELEMETRY_SMARTPORT": {
         "message": "SmartPort"
     },
+    "portsFunction_TELEMETRY_IBUS": {
+        "message": "iBUS"
+    },
+    "portsFunction_TELEMETRY_JETIXBUS": {
+        "message": "JETIXBUS"
+    },
+    "portsFunction_TELEMETRY_CRSF": {
+        "message": "CRSF"
+    },
+    "portsFunction_TELEMETRY_SRXL": {
+        "message": "SRXL"
+    },
     "portsFunction_ESC_SENSOR": {
         "message": "ESC"
     },
@@ -818,6 +826,12 @@
     },
     "portsFunction_TBS_SMARTAUDIO": {
         "message": "TBS SmartAudio"
+    },
+    "portsFunction_IRC_TRAMP": {
+        "message": "IRC Tramp"
+    },
+    "portsFunction_RUNCAM_SPLIT_CONTROL": {
+        "message": "RunCam Split"
     },
     "pidTuningUpgradeFirmwareToChangePidController": {
         "message": "<span style=\"color: red\">Changing PID controller disabled - you can change it via the CLI.</span>  You have firmware with API version <span style=\"color: red\">$1</span>, but this functionality requires requires <span style=\"color: #ffbb00\">$2</span>."
@@ -837,6 +851,14 @@
     "pidTuningNonProfilePidSettings": {
         "message": "Profile independent PID Controller Settings"
     },
+
+    "pidTuningAntiGravityGain": {
+        "message": "Anti Gravity Gain"
+    },
+    "pidTuningAntiGravityThres": {
+        "message": "Anti Gravity Threshold"
+    },
+
     "pidTuningPidSettings": {
         "message": "PID Controller Settings"
     },
@@ -848,9 +870,6 @@
     },
     "receiverRcInterpolationIntervalHelp": {
         "message": "Interpolation interval for manual RC interpolation mode in milliseconds"
-    },
-    "receiverRcInterpolation": {
-        "message": "RC Interpolation"
     },
     "receiverRcInterpolationOff": {
         "message": "Off"
@@ -865,7 +884,7 @@
         "message": "Manual"
     },
     "receiverRcInterpolationInterval": {
-        "message": "RC Interpolating Interval (ms)"
+        "message": "RC Interpolation Interval [ms]"
     },
     "pidTuningPtermSetpoint": {
         "message": "D Setpoint transition"
@@ -892,7 +911,7 @@
         "message": "RC Rate"
     },
     "pidTuningMaxVel": {
-        "message": "Max Vel (deg/s)"
+        "message": "Max Vel [deg/s]"
     },
     "pidTuningRate": {
         "message": "Rate"
@@ -919,10 +938,10 @@
         "message": "Frequency"
     },
     "pidTuningRatesCurve": {
-	    "message": "Rates"
+        "message": "Rates"
     },
     "throttle": {
-	    "message": "Throttle"
+        "message": "Throttle"
     },
     "pidTuningButtonSave": {
         "message": "Save"
@@ -965,7 +984,7 @@
         "message": "Please read receiver chapter of the documentation.  Configure serial port (if required), receiver mode (serial/ppm/pwm), provider (for serial receivers), bind receiver, set channel map, configure channel endpoints/range on TX so that all channels go from ~1000 to ~2000.  Set midpoint (default 1500), trim channels to 1500, configure stick deadband, verify behaviour when TX is off or out of range.<br /><span style=\"color: red\">IMPORTANT:</span> Before flying read failsafe chapter of documentation and configure failsafe."
     },
     "tuningHelp": {
-        "message": "<b>Tuning tips</b><br /><span style=\"color: red\">IMPORTANT:</span> It is important to verify motor temperatures during first flights. The higher the filter value gets the better it may fly, but you do to get more noise into the motors. <br>Default value of 100hz is optimal, but for noiser setups you can try lowering Dterm filter to 50hz and possibly also the gyro filter."
+        "message": "<b>Tuning tips</b><br /><span style=\"color: red\">IMPORTANT:</span> It is important to verify motor temperatures during first flights. The higher the filter value gets the better it may fly, but you also will get more noise into the motors. <br>Default value of 100hz is optimal, but for noiser setups you can try lowering Dterm filter to 50hz and possibly also the gyro filter."
     },
     "receiverThrottleMid": {
         "message": "Throttle MID"
@@ -973,11 +992,23 @@
     "receiverThrottleExpo": {
         "message": "Throttle EXPO"
     },
-    "receiverMidRc": {
-        "message": "Center value for RC channels"
+    "receiverStickMin": {
+        "message": "Stick Min"
     },
-    "receiverMidRcHelp": {
-        "message": "This is the center value <span style=\"font-weight: bold\">for all RC channels</span>. Set this to the value that your transmitter sends when the stick is centered for a channel. To adjust the thrust at throttle mid position, change the 'Trottle MID' value on the PID Tuning tab."
+    "receiverHelpStickMin": {
+        "message": "The value (in us) used to determine if a stick is low."
+    },
+    "receiverStickCenter": {
+        "message": "Stick Center"
+    },
+    "receiverHelpStickCenter": {
+        "message": "The value (in us) used to determine if a stick is centered."
+    },
+    "receiverStickMax": {
+        "message": "Stick Max"
+    },
+    "receiverHelpStickMax": {
+        "message": "The value (in us) used to determine if a stick is high."
     },
     "receiverDeadband": {
         "message": "RC Deadband"
@@ -985,11 +1016,17 @@
     "receiverHelpDeadband": {
         "message": "These are values (in us) by how much RC input can be different before it's considered valid. For transmitters with jitter on outputs, this value can be increased if rc inputs twitch while idle."
     },
+    "receiverYawDeadband": {
+        "message": "Yaw Deadband"
+    },
     "receiverHelpYawDeadband": {
         "message": "These are values (in us) by how much RC input can be different before it's considered valid. For transmitters with jitter on outputs, this value can be increased if rc inputs twitch while idle. <strong>This setting is for Yaw only.</strong>"
     },
-    "receiverYawDeadband": {
-        "message": "Yaw Deadband"
+    "recevier3dDeadbandThrottle": {
+        "message": "3D Throttle Deadband"
+    },
+    "receiverHelp3dDeadbandThrottle": {
+        "message": "These are values (in us). To widen the neutral zone increased the value. <strong>This setting is for 3D throttle only.</strong>"
     },
     "receiverChannelMap": {
         "message": "Channel Map"
@@ -1161,6 +1198,9 @@
     "adjustmentsFunction23": {
         "message": "D Setpoint Transition"
     },
+    "adjustmentsFunction24": {
+        "message": "Horizon Strength Adjustment"
+    },
     "adjustmentsSave": {
         "message": "Save"
     },
@@ -1171,23 +1211,62 @@
     "transponderNotSupported": {
         "message": "Your flight controller's firmware does not support transponder functionality."
     },
-    "transponderHelp": {
-        "message": "Configure your transponder code here.  Note: Only valid codes will be recognised by race timing systems.  Valid transponder codes can be obtained from <a href=\"http://seriouslypro.com/transponder-codes\" target=\"_blank\">Seriously Pro</a>."
-    },
     "transponderInformation": {
         "message": "Transponders systems allow race organizers to time your laps.  The transponder is fitted to your aircraft and when your aircraft passes the timing gate the track-side receiver registers your code and records your laptime.  When fitting an IR based transponder your should ensure that it points outward from your aircraft towards the track-side receivers and that the light beam is not obstructed by your airframe, battery-straps, cables, propellers, etc."
     },
-    "transponderConfiguration": {
-        "message": "Configuration"
+    "transponderConfigurationType": {
+        "message": "Transponder type"
     },
-    "transponderData": {
+    "transponderType0": {
+        "message": "None"
+    },
+    "transponderType1": {
+        "message": "iLap"
+    },
+    "transponderType2": {
+        "message": "aRCiTimer"
+    },
+    "transponderType3": {
+        "message": "ERLT"
+    },
+    "transponderConfiguration1": {
+        "message": "Configuration iLap"
+    },
+    "transponderConfiguration2": {
+        "message": "Configuration aRCiTimer"
+    },
+    "transponderConfiguration3": {
+        "message": "Configuration ERLT"
+    },
+    "transponderData1": {
         "message": "Data"
     },
-    "transponderDataHelp": {
+    "transponderData2": {
+        "message": "Transponder ID"
+    },
+    "transponderData3": {
+        "message": "Transponder ID"
+    },
+    "transponderDataHelp1": {
         "message": "Hexadecimal digits only, 0-9, A-F"
+    },
+    "transponderHelp1": {
+        "message": "Configure your transponder code here.  Note: Only valid codes will be recognised by race timing systems.  Valid transponder codes can be obtained from <a href=\"http://seriouslypro.com/transponder-codes\" target=\"_blank\">Seriously Pro</a>."
+    },
+    "transponderHelp2": {
+        "message": "For more information please visit <a href=\"http://www.arcitimer.com/\" title=\"aRCiTimer\" target=\"_blank\">aRCiTimer site</a>"
+    },
+    "transponderDataHelp3": {
+        "message": "Choose ERLT ID 0-63"
+    },
+    "transponderHelp3": {
+        "message": "For more information please visit <a href=\"https://github.com/polyvision/EasyRaceLapTimer\" title=\"aRCiTimer\" target=\"_blank\">EasyRaceLapTimer site</a>"
     },
     "transponderButtonSave": {
         "message": "Save"
+    },
+    "transponderButtonSaveReboot": {
+        "message": "Save and Reboot"
     },
     "transponderDataInvalid": {
         "message": "Transponder data is <span style=\"color: red\">invalid</span>"
@@ -1238,7 +1317,12 @@
     "servosEepromSave": {
         "message": "EEPROM <span style=\"color: #ffbb00\">saved</span>"
     },
-
+    "motorsGyroscope": {
+        "message": "Gyroscope - "
+    },
+    "motorsGyroscopeReset": {
+        "message": "[Reset]"
+    },
     "gpsHead": {
         "message": "GPS"
     },
@@ -1317,6 +1401,9 @@
     "cliReboot": {
         "message": "CLI reboot detected"
     },
+    "cliSaveToFileBtn": {
+        "message": "Save to File"
+    },
 
     "loggingNote": {
         "message": "Data will be logged in this tab <span style=\"color: red\">only</span>, leaving the tab will <span style=\"color: red\">cancel</span> logging and application will return to its normal <strong>\"configurator\"</strong> state.<br /> You are free to select the global update period, data will be written into the log file every <strong>1</strong> second for performance reasons."
@@ -1364,6 +1451,18 @@
     "blackboxButtonSave": {
         "message": "Save and reboot"
     },
+    "blackboxLoggingNone": {
+        "message": "No Logging"
+    },
+    "blackboxLoggingFlash": {
+        "message": "Onboard Flash"
+    },
+    "blackboxLoggingSdCard": {
+        "message": "SD Card"
+    },
+    "blackboxLoggingSerial": {
+        "message": "Serial Port"
+    },
 
     "serialLoggingSupportedNote": {
         "message": "You can log to an external logging device (such as an OpenLog or compatible clone) by using a serial port. Configure the port on the Ports tab."
@@ -1391,7 +1490,7 @@
         "message": "Confirm dataflash erase"
     },
     "dataflashConfirmEraseNote": {
-        "message": "This will erase any Blackbox logs or other data contained in the dataflash which will take about 20 seconds, are you sure?"
+        "message": "This will erase any Blackbox logs or other data contained in the dataflash. It should take about 20 seconds, are you sure?"
     },
     "dataflashSavingTitle": {
         "message": "Saving dataflash to file"
@@ -1477,7 +1576,7 @@
         "message": "Select firmware version for your board."
     },
     "firmwareFlasherNoRebootDescription": {
-        "message": "Enable if you powered your FC while the bootloader pins are jumpered or have your FC's BOOT button pressed."
+        "message": "Enable if your FC is in boot mode. i.e. if you powered on your FC with the bootloader pins jumped or whilst holding your FC's BOOT button."
     },
     "firmwareFlasherFlashOnConnect": {
         "message": "Flash on connect"
@@ -1534,7 +1633,7 @@
         "message": "Flash Firmware"
     },
     "firmwareFlasherGithubInfoHead": {
-        "message": "Github Firmware Info"
+        "message": "GitHub Firmware Info"
     },
     "firmwareFlasherCommiter": {
         "message": "Committer:"
@@ -1584,6 +1683,78 @@
     },
     "ledStripEepromSaved": {
         "message": "EEPROM <span style=\"color: #ffbb00\">saved</span>"
+    },
+    "ledStripVtxOverlay": {
+        "message": "VTX (uses vtx frequency to assign color)"
+    },
+    "ledStripFunctionSection": {
+        "message": "LED Functions"
+    },
+    "ledStripFunctionTitle": {
+        "message": "Function"
+    },
+    "ledStripColorModifierTitle": {
+        "message": "Color modifier"
+    },
+    "ledStripThrottleFunction": {
+        "message": "Throttle"
+    },
+    "ledStripVtxFunction": {
+        "message": "Larson scanner"
+    },
+    "ledStripBlinkTitle": {
+        "message": "Blink"
+    },
+    "ledStripBlinkAlwaysOverlay": {
+        "message": "Blink always"
+    },
+    "ledStripBlinkLandingOverlay": {
+        "message": "Blink on landing"
+    },
+    "ledStripOverlayTitle": {
+        "message": "Overlay"
+    },
+    "ledStripWarningsOverlay": {
+        "message": "Warnings"
+    },
+    "ledStripIndecatorOverlay": {
+        "message": "Indicator (uses position on matrix)"
+    },
+    "ledStripVtxOverlay": {
+        "message": "VTX (uses vtx frequency to assign color)"
+    },
+    "ledStripFunctionSection": {
+        "message": "LED Functions"
+    },
+    "ledStripFunctionTitle": {
+        "message": "Function"
+    },
+    "ledStripColorModifierTitle": {
+        "message": "Color modifier"
+    },
+    "ledStripThrottleFunction": {
+        "message": "Throttle"
+    },
+    "ledStripVtxFunction": {
+        "message": "Larson scanner"
+    },
+    "ledStripBlinkTitle": {
+        "message": "Blink"
+    },
+    "ledStripBlinkAlwaysOverlay": {
+        "message": "Blink always"
+    },
+    "ledStripBlinkLandingOverlay": {
+        "message": "Blink on landing"
+    },
+    "ledStripOverlayTitle": {
+        "message": "Overlay"
+    },
+    "ledStripWarningsOverlay": {
+        "message": "Warnings"
+    },
+    "ledStripIndecatorOverlay": {
+        "message": "Indicator (uses position on matrix)"
     },
 
     "controlAxisRoll": {
@@ -1695,60 +1866,66 @@
     "pidTuningLevelHelp": {
         "message": "The values below change the behaviour of the ANGLE and HORIZON flight modes. Different PID controllers handle the values differently. Please check the documentation."
     },
-  "pidTuningNonProfileFilterSettings": {
-    "message": "Profile independent Filter Settings"
-  },
-  "pidTuningGyroLowpassFrequency": {
-    "message": "Gyro Soft Lowpass Frequency (Hz)"
-  },
-  "pidTuningGyroLowpassFrequencyHelp": {
-    "message": "Gyro Soft Lowpass Frequency (Hz)"
-  },
-  "pidTuningGyroNotch1Frequency": {
-      "message": "Gyro Notch Filter 1 Frequency (Hz)"
-  },
-  "pidTuningGyroNotch2Frequency": {
-      "message": "Gyro Notch Filter 2 Frequency (Hz)"
-  },
-  "pidTuningGyroNotchFrequencyHelp": {
-    "message": "Gyro Notch Filter Frequency in Hz (0 means disabled)"
-  },
-  "pidTuningGyroNotch1Cutoff": {
-        "message": "Gyro Notch Filter Cutoff 1 Frequency (Hz)"
+    "pidTuningNonProfileFilterSettings": {
+        "message": "Profile independent Filter Settings"
+    },
+    "pidTuningGyroLowpassFrequency": {
+        "message": "Gyro Soft Lowpass Frequency [Hz]"
+    },
+    "pidTuningGyroLowpassFrequencyHelp": {
+        "message": "Gyro Soft Lowpass Frequency [Hz]"
+    },
+    "pidTuningGyroNotch1Frequency": {
+        "message": "Gyro Notch Filter 1 Frequency [Hz]"
+    },
+    "pidTuningGyroNotch2Frequency": {
+        "message": "Gyro Notch Filter 2 Frequency [Hz]"
+    },
+    "pidTuningGyroNotchFrequencyHelp": {
+        "message": "Gyro Notch Filter Frequency in Hz (0 means disabled)"
+    },
+    "pidTuningGyroNotch1Cutoff": {
+        "message": "Gyro Notch Filter Cutoff 1 Frequency [Hz]"
     },
     "pidTuningGyroNotch2Cutoff": {
-        "message": "Gyro Notch Filter Cutoff 2 Frequency (Hz)"
+        "message": "Gyro Notch Filter Cutoff 2 Frequency [Hz]"
     },
     "pidTuningGyroNotchCutoffHelp": {
-    "message": "Gyro Notch Filter Cutoff Frequency in Hz (This is where notch filter starts. For example with notch filter 160 and notch hz of 260 it means the range is 160-360hz with most attenuation around center)"
-  },
-  "pidTuningFilterSettings": {
-    "message": "Filter Settings"
-  },
-  "pidTuningDTermLowpassFrequency": {
-    "message": "D Term Lowpass Frequency (Hz)"
-  },
-  "pidTuningDTermLowpassFrequencyHelp": {
-    "message": "D Term Lowpass Frequency in Hz (0 means disabled)"
-  },
-  "pidTuningDTermNotchFrequency": {
-    "message": "D Term Notch Filter Frequency (Hz)"
-  },
-  "pidTuningDTermNotchFrequencyHelp": {
-    "message": "D Term Notch Filter Frequency in Hz (0 means disabled)"
-  },
-  "pidTuningDTermNotchCutoff": {
-    "message": "D Term Notch Filter Cutoff (Hz)"
-  },
-  "pidTuningDTermNotchCutoffHelp": {
-    "message": "D Term Notch Filter Cutoff in Hz (This is where notch filter starts. For example with notch filter 160 and notch hz of 260 it means the range is 160-360hz with most attenuation around center)"
-  },
-  "pidTuningYawLowpassFrequency": {
-    "message": "Yaw Lowpass Frequency (Hz)"
-  },
-  "pidTuningYawLowpassFrequencyHelp": {
-    "message": "Yaw Lowpass Frequency in Hz (Yaw axis can sometimes be noiser than the rest. This filter only affects the P of yaw)"
-  },
+        "message": "Gyro Notch Filter Cutoff Frequency in Hz (This is where notch filter starts. For example with notch filter 160 and notch hz of 260 it means the range is 160-360hz with most attenuation around center)"
+    },
+    "pidTuningFilterSettings": {
+        "message": "Filter Settings"
+    },
+    "pidTuningDTermLowpassType": {
+        "message": "D-Term Lowpass Filter"
+    },
+    "pidTuningDTermLowpassTypeTip": {
+        "message": "Select D-Term lowpass filter type to use. Default is BIQUAD"
+    },
+    "pidTuningDTermLowpassFrequency": {
+        "message": "D Term Lowpass Frequency [Hz]"
+    },
+    "pidTuningDTermLowpassFrequencyHelp": {
+        "message": "D Term Lowpass Frequency [Hz] (0 means disabled)"
+    },
+    "pidTuningDTermNotchFrequency": {
+        "message": "D Term Notch Filter Frequency [Hz]"
+    },
+    "pidTuningDTermNotchFrequencyHelp": {
+        "message": "D Term Notch Filter Frequency [Hz] (0 means disabled)"
+    },
+    "pidTuningDTermNotchCutoff": {
+        "message": "D Term Notch Filter Cutoff [Hz]"
+    },
+    "pidTuningDTermNotchCutoffHelp": {
+        "message": "D Term Notch Filter Cutoff in Hz (This is where notch filter starts. For example with notch filter 160 and notch hz of 260 it means the range is 160-360hz with most attenuation around center)"
+    },
+    "pidTuningYawLowpassFrequency": {
+        "message": "Yaw Lowpass Frequency [Hz]"
+    },
+    "pidTuningYawLowpassFrequencyHelp": {
+        "message": "Yaw Lowpass Frequency [Hz] (Yaw axis can sometimes be noiser than the rest. This filter only affects the P of yaw)"
+    },
     "pidTuningVbatPidCompensation": {
         "message": "Vbat PID Compensation"
     },
@@ -1813,7 +1990,7 @@
         "message": "Delay for turning off the Motors during Failsafe [1 = 0.1 sec.]"
     },
     "failsafeOffDelayHelp": {
-        "message": "Time to stay in landing mode untill the motors are turned off and the craft is disarmed"
+        "message": "Time to stay in landing mode until the motors are turned off and the craft is disarmed"
     },
     "failsafeSubTitle1": {
         "message": "Stage 2 - Failsafe Procedure"
@@ -1828,8 +2005,407 @@
         "message": "Failsafe Kill Switch (setup Failsafe in Modes Tab)"
     },
     "failsafeKillSwitchHelp": {
-        "message": "Set this option to make the failsafe switch, configured in the modes tab, act as a direct kill switch, bypassing the selected failsafe procedure. <strong>Note:</strong> Arming is blocked with the failsafe kill switch in the ON position"
+        "message": "Set this option to make the failsafe switch (Modes Tab) act as a direct kill switch, bypassing the selected failsafe procedure. <strong>Note:</strong> Arming is blocked with the failsafe kill switch in the ON position"
     },
+
+    "powerButtonSave": {
+        "message": "Save"
+    },
+    "powerFirmwareUpgradeRequired": {
+        "message": "Firmware upgrade <span style=\"color: red\">required</span>. Battery/Amperage/Voltage configurations using API &lt; 1.33.0 (Betaflight release &lt;= 3.17) is not supported."
+    },
+    "powerBatteryVoltageMeterSource": {
+        "message": "Voltage Meter Source"
+    },
+    "powerBatteryCurrentMeterSource": {
+        "message": "Current Meter Source"
+    },
+    "powerBatteryMinimum": {
+        "message": "Minimum Cell Voltage"
+    },
+    "powerBatteryMaximum": {
+        "message": "Maximum Cell Voltage"
+    },
+    "powerBatteryWarning": {
+        "message": "Warning Cell Voltage"
+    },
+    "powerVoltageHead": {
+        "message": "Voltage Meter"
+    },
+    "powerVoltageValue": {
+        "message": "$1 V"
+    },
+    "powerAmperageValue": {
+        "message": "$1 A"
+    },
+    "powerVoltageId10": {
+        "message": "Battery"
+    },
+    "powerVoltageId20": {
+        "message": "5V"
+    },
+    "powerVoltageId30": {
+        "message": "9V"
+    },
+    "powerVoltageId40": {
+        "message": "12V"
+    },
+    "powerVoltageId50": {
+        "message": "ESC Combined"
+    },
+    "powerVoltageId60": {
+        "message": "ESC Motor 1"
+    },
+    "powerVoltageId61": {
+        "message": "ESC Motor 2"
+    },
+    "powerVoltageId62": {
+        "message": "ESC Motor 3"
+    },
+    "powerVoltageId63": {
+        "message": "ESC Motor 4"
+    },
+    "powerVoltageId64": {
+        "message": "ESC Motor 5"
+    },
+    "powerVoltageId65": {
+        "message": "ESC Motor 6"
+    },
+    "powerVoltageId66": {
+        "message": "ESC Motor 7"
+    },
+    "powerVoltageId67": {
+        "message": "ESC Motor 8"
+    },
+    "powerVoltageId68": {
+        "message": "ESC Motor 9"
+    },
+    "powerVoltageId69": {
+        "message": "ESC Motor 10"
+    },
+    "powerVoltageId70": {
+        "message": "ESC Motor 11"
+    },
+    "powerVoltageId71": {
+        "message": "ESC Motor 12"
+    },
+    "powerVoltageId80": {
+        "message": "Cell 1"
+    },
+    "powerVoltageId81": {
+        "message": "Cell 2"
+    },
+    "powerVoltageId82": {
+        "message": "Cell 3"
+    },
+    "powerVoltageId83": {
+        "message": "Cell 4"
+    },
+    "powerVoltageId84": {
+        "message": "Cell 5"
+    },
+    "powerVoltageId85": {
+        "message": "Cell 6"
+    },
+
+
+    "powerVoltageScale": {
+        "message": "Scale"
+    },
+    "powerVoltageDivider": {
+        "message": "Divider Value"
+    },
+    "powerVoltageMultiplier": {
+        "message": "Multiplier Value"
+    },
+
+    "powerAmperageHead": {
+        "message": "Amperage Meter"
+    },
+    "powerAmperageId10": {
+        "message": "Battery"
+    },
+    "powerAmperageId50": {
+        "message": "ESC Combined"
+    },
+    "powerAmperageId60": {
+        "message": "ESC Motor 1"
+    },
+    "powerAmperageId61": {
+        "message": "ESC Motor 2"
+    },
+    "powerAmperageId62": {
+        "message": "ESC Motor 3"
+    },
+    "powerAmperageId63": {
+        "message": "ESC Motor 4"
+    },
+    "powerAmperageId64": {
+        "message": "ESC Motor 5"
+    },
+    "powerAmperageId65": {
+        "message": "ESC Motor 6"
+    },
+    "powerAmperageId66": {
+        "message": "ESC Motor 7"
+    },
+    "powerAmperageId67": {
+        "message": "ESC Motor 8"
+    },
+    "powerAmperageId68": {
+        "message": "ESC Motor 9"
+    },
+    "powerAmperageId69": {
+        "message": "ESC Motor 10"
+    },
+    "powerAmperageId70": {
+        "message": "ESC Motor 11"
+    },
+    "powerAmperageId71": {
+        "message": "ESC Motor 12"
+    },
+    "powerAmperageId80": {
+        "message": "Virtual"
+    },
+    "powerMahValue": {
+        "message": "$1 mAh"
+    },
+
+    "powerAmperageScale": {
+        "message": "Scale"
+    },
+    "powerAmperageOffset": {
+        "message": "Offset in milliampere steps"
+    },
+
+    "powerBatteryHead": {
+        "message": "Battery"
+    },
+    "powerStateHead": {
+        "message": "Power State"
+    },
+    "powerBatteryConnected": {
+        "message": "Connected"
+    },
+    "powerBatteryConnectedValueYes": {
+        "message": "Yes (Cells: $1)"
+    },
+    "powerBatteryConnectedValueNo": {
+        "message": "No"
+    },
+    "powerBatteryVoltage": {
+        "message": "Voltage"
+    },
+    "powerBatteryCurrentDrawn": {
+        "message": "mAh used"
+    },
+    "powerBatteryAmperage": {
+        "message": "Amperage"
+    },
+    "powerBatteryCapacity": {
+        "message": "Capacity (mAh)"
+    },
+
+    "osdSetupHead": {
+        "message": "Info"
+    },
+    "osdSetupVideoMode": {
+        "message": "Video Mode"
+    },
+    "osdSetupCameraConnected": {
+        "message": "Camera Connected"
+    },
+    "osdSetupCameraConnectedValueYes": {
+        "message": "Yes"
+    },
+    "osdSetupCameraConnectedValueNo": {
+        "message": "No"
+    },
+
+    "osdSetupResetText": {
+        "message": "Reset OSD to default"
+    },
+    "osdSetupButtonReset": {
+        "message": "Reset Settings"
+    },
+
+    "osdDescElementMainBattVoltage": {
+        "message": "Instantaneous main battery voltage (flashes when below alarm threshold)"
+    },
+    "osdDescElementRssiValue": {
+        "message": "Instantaneous RSSI value (flashes when below alarm threshold)"
+    },
+    "osdDescElementThrottlePosition": {
+        "message": "Current throttle channel value"
+    },
+    "osdDescElementArmed": {
+        "message": "Textual armed message"
+    },
+    "osdDescElementDisarmed": {
+        "message": "Textual disarmed message"
+    },
+    "osdDescElementCrosshairs": {
+        "message": "Center of screen crosshair"
+    },
+    "osdDescElementArtificialHorizon": {
+        "message": "Graphical artificial horizon indicator"
+    },
+    "osdDescElementHorizonSidebars": {
+        "message": "Sidebars around artificial horizon indicator"
+    },
+    "osdDescElementCurrentDraw": {
+        "message": "Instantaneous battery current draw"
+    },
+    "osdDescElementMahDrawn": {
+        "message": "Total battery capacity used"
+    },
+    "osdDescElementCraftName": {
+        "message": "Craft name as set in Configuration tab"
+    },
+    "osdDescElementAltitude": {
+        "message": "Current altitude (flashes when above alarm threshold)"
+    },
+    "osdDescElementOnTime": {
+        "message": "Total time the craft has been powered on"
+    },
+    "osdDescElementFlyTime": {
+        "message": "Total time the craft has been armed in the current power cycle (flashes when above alarm threshold)"
+    },
+    "osdDescElementFlyMode": {
+        "message": "Current flight mode"
+    },
+    "osdDescElementGPSSpeed": {
+        "message": "GPS provided speed"
+    },
+    "osdDescElementGPSSats": {
+        "message": "Number of satellites providing GPS fix"
+    },
+    "osdDescElementGPSLon": {
+        "message": "GPS longitude"
+    },
+    "osdDescElementGPSLat": {
+        "message": "GPS latitude"
+    },
+    "osdDescElementDebug": {
+        "message": "Debug variables"
+    },
+    "osdDescElementPIDRoll": {
+        "message": "Roll axis PID gains"
+    },
+    "osdDescElementPIDPitch": {
+        "message": "Pitch axis PID gains"
+    },
+    "osdDescElementPIDYaw": {
+        "message": "Yaw axis PID gains"
+    },
+    "osdDescElementPower": {
+        "message": "Instantaneous electrical power consumption"
+    },
+    "osdDescElementPIDRateProfile": {
+        "message": "Numerical display of the active PID and rate profiles"
+    },
+    "osdDescElementBatteryWarning": {
+        "message": "Warning text that appears when the battery voltage falls below warning threshold"
+    },
+    "osdDescElementAvgCellVoltage": {
+        "message": "Average cell voltage (main battery voltage / cell count)"
+    },
+    "osdDescElementPitchAngle": {
+        "message": "Numerical pitch angle in degrees"
+    },
+    "osdDescElementRollAngle": {
+        "message": "Numerical roll angle in degrees"
+    },
+    "osdDescElementMainBattUsage": {
+        "message": "Graphical representation of battery capacity usage"
+    },
+    "osdDescElementArmedTime": {
+        "message": "Time since the craft was last armed"
+    },
+    "osdDescElementWarnings": {
+        "message": "Alerts (e.g. low battery), warnings (e.g. reasons for not arming, critically low battery) and visual beeper (4 flashing asterisks)."
+    },
+    "osdDescElementEscTemperature": {
+        "message": "Temperature reported by ESC telemetry"
+    },
+    "osdDescElementEscRpm": {
+        "message": "RPM reported by ESC telemetry"
+    },
+    "osdDescElementHomeDirection": {
+        "message": "Arrow showing direction to home position"
+    },
+    "osdDescElementHomeDistance": {
+        "message": "Distance to home position (in either feet or metre based on unit system setting)"
+    },
+    "osdDescElementNumericalHeading": {
+        "message": "Numerical readout of current heading in degrees"
+    },
+    "osdDescElementNumericalVario": {
+        "message": "Numerical readout of vertical speed (in either feet or metre based on unit system setting)"
+    },
+    "osdDescElementCompassBar": {
+        "message": "Graphical compass bar showing current heading"
+    },
+    "osdDescElementTimer1" : {
+        "message": "Shows the value of timer 1"
+    },
+    "osdDescElementTimer2" : {
+        "message": "Shows the value of timer 2"
+    },
+
+    "osdDescStatMaxSpeed": {
+        "message": "Maximum recorded speed"
+    },
+    "osdDescStatMinBattery": {
+        "message": "Minimum recorded main battery voltage"
+    },
+    "osdDescStatMinRssi": {
+        "message": "Minimum recorded RSSI"
+    },
+    "osdDescStatMaxCurrent": {
+        "message": "Maximum recorded current draw"
+    },
+    "osdDescStatUsedMah": {
+        "message": "Battery capacity used"
+    },
+    "osdDescStatMaxAltitude": {
+        "message": "Maximum recorded altitude"
+    },
+    "osdDescStatBlackbox": {
+        "message": "Percentage of total blackbox use"
+    },
+    "osdDescStatEndBattery": {
+        "message": "Battery voltage at time of disarm"
+    },
+    "osdDescStatFlyTime": {
+        "message": "Total time craft has been armed on current power cycle"
+    },
+    "osdDescStatArmedTime": {
+        "message": "Time since craft was last armed"
+    },
+    "osdDescStatMaxDistance": {
+        "message": "Maximum distance from home location"
+    },
+    "osdDescStatBlackboxLogNumber": {
+        "message": "Log number for this flights Blackbox log"
+    },
+    "osdDescStatTimer1": {
+        "message": "Value of timer 1 at time of disarming"
+    },
+    "osdDescStatTimer2": {
+        "message": "Value of timer 2 at time of disarming"
+    },
+
+    "osdTimerSourceTooltip": {
+        "message": "Select the timer source, this controls the duration/event that the timer measures"
+    },
+    "osdTimerPrecisionTooltip": {
+        "message": "Select the timer precision, this controls to what precision the time is reported in"
+    },
+    "osdTimerAlarmTooltip": {
+        "message": "Select the timer alarm threshold in minutes, when the time exceeds this value the OSD element will blink, setting this to 0 disables the alarm"
+    },
+
     "mainHelpArmed": {
         "message": "Motor Arming"
     },
@@ -1843,7 +2419,7 @@
         "message": "ESC/Motor protocol"
     },
     "configurationEscProtocolHelp": {
-        "message": "Select here your motor protocol. <br>Make sure to verify product site of your ESC to what protocol is supported. <br> <b>Be carefull using DSHOT900 and DSHOT1200 as not many ESC's support it!</b>"
+        "message": "Select your motor protocol. <br>Make sure to verify the protocol is supported by your ESC, this information should be on the makers website. <br> <b>Be carefull using DSHOT900 and DSHOT1200 as not many ESC's support it!</b>"
     },
     "configurationunsyndePwm": {
         "message": "Motor PWM speed Separated from PID speed"
@@ -1879,7 +2455,7 @@
         "message": "Profile"
     },
     "pidTuningProfileTip": {
-        "message": "Up to 3 (2 for some controllers) different profiles can be stored on the flight controller. The profiles include all the settings on this tab. Once in the field, simple stick commands (see online instructions) can be used to switch between the profiles."
+        "message": "Up to 3 (2 for some controllers) different pid profiles can be stored on the flight controller. The pid profiles include pid, d setpoint and angle/horizon settings on this tab. Once in the field, simple stick commands (see online instructions) can be used to switch between the profiles."
     },
     "pidTuningRateProfile": {
         "message": "Rateprofile"
@@ -1908,32 +2484,38 @@
     "pidTuningPidTuningTip": {
         "message": "<b>Proportional:</b> You will notice a very strong resistant force to any attempts to move the MultiRotor<br><b>Integral:</b> Increase the ability to hold overall initial position and reduce drift, but also increase the delay in returning to initial position.<br><b>Derivative:</b> Improves the speed at which deviations are recovered, but increases noise<br><b>Rates and Expo</b>: Determine your stick feel based on these parameters. Use the graph and live 3D model to find your favourite rate setting"
     },
-      "pidTuningRatesTip": {
+    "pidTuningRatesTip": {
         "message": "Play with the rates and see how those affect the stick curve"
     },
-      "configurationMisc": {
-        "message": "Misc"
+    "configurationCamera": {
+        "message": "Camera"
     },
-      "configurationVesselName": {
+    "configurationPersonalization": {
+        "message": "Personalization"
+    },
+    "craftName": {
         "message": "Craft name"
     },
-      "onboardLoggingBlackbox": {
-    	"message": "Blackbox logging device"
+    "configurationFpvCamAngleDegrees": {
+        "message": "FPV Camera Angle [degrees]"
     },
-      "onboardLoggingRateOfLogging": {
-    	"message": "Blackbox logging rate"
+    "onboardLoggingBlackbox": {
+        "message": "Blackbox logging device"
     },
-      "onboardLoggingSerialLogger": {
-    	"message": "Outboard serial logging device"
+    "onboardLoggingRateOfLogging": {
+        "message": "Blackbox logging rate"
     },
-      "onboardLoggingFlashLogger": {
-    	"message": "Onboard dataflash chip"
+    "onboardLoggingSerialLogger": {
+        "message": "Outboard serial logging device"
     },
-      "onboardLoggingEraseInProgress": {
-    	"message": "Erase in progress, please wait..."
+    "onboardLoggingFlashLogger": {
+        "message": "Onboard dataflash chip"
     },
-      "onboardLoggingOnboardSDCard": {
-    	"message": "Onboard SD card"
+    "onboardLoggingEraseInProgress": {
+        "message": "Erase in progress, please wait..."
+    },
+    "onboardLoggingOnboardSDCard": {
+        "message": "Onboard SD card"
     }
 
 

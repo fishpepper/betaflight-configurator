@@ -30,9 +30,21 @@ TABS.ports.initialize = function (callback, scrollPosition) {
         functionRules.push(mavlinkFunctionRule);
     }
 
-    if (semver.gte(CONFIG.flightControllerVersion, "3.1.0")) {
+    if (semver.gte(CONFIG.apiVersion, "1.31.0")) {
         functionRules.push({ name: 'ESC_SENSOR', groups: ['sensors'], maxPorts: 1 });
         functionRules.push({ name: 'TBS_SMARTAUDIO', groups: ['peripherals'], maxPorts: 1 });
+    }
+
+    if (semver.gte(CONFIG.apiVersion, "1.27.0")) {
+        functionRules.push({ name: 'IRC_TRAMP', groups: ['peripherals'], maxPorts: 1 });
+    }
+
+    if (semver.gte(CONFIG.apiVersion, "1.32.0")) {
+        functionRules.push({ name: 'TELEMETRY_IBUS', groups: ['telemetry'], maxPorts: 1 });
+    }
+
+    if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+        functionRules.push({ name: 'RUNCAM_SPLIT_CONTROL', groups: ['peripherals'], maxPorts: 1 });
     }
 
     for (var i = 0; i < functionRules.length; i++) {
@@ -49,7 +61,7 @@ TABS.ports.initialize = function (callback, scrollPosition) {
         '250000'
     ];
 
-    if (semver.gte(CONFIG.flightControllerVersion, "3.1.0")) {
+    if (semver.gte(CONFIG.apiVersion, "1.31.0")) {
         mspBaudRates = mspBaudRates.concat(['500000', '1000000']);
     }
 
@@ -201,7 +213,7 @@ TABS.ports.initialize = function (callback, scrollPosition) {
                     var select_e;
                     if (column !== 'telemetry' && column !== 'sensors' && column !== 'peripherals') {
                         var checkboxId = 'functionCheckbox-' + portIndex + '-' + columnIndex + '-' + i;
-                        functions_e.prepend('<span class="function"><input type="checkbox" class="togglemedium" id="' + checkboxId + '" value="' + functionName + '" /><label for="' + checkboxId + '"> ' + functionRule.displayName + '</label></span>');
+                        functions_e.prepend('<span class="function"><input type="checkbox" class="togglemedium" id="' + checkboxId + '" value="' + functionName + '" /><label for="' + checkboxId + '"></label></span>');
 
                         if (serialPort.functions.indexOf(functionName) >= 0) {
                             var checkbox_e = functions_e.find('#' + checkboxId);

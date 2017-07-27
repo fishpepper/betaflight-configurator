@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "minimum_chrome_version": "38",
-    "version": "1.8.8",
+    "version": "3.1.2",
     "author": "Betaflight Squad",
     "name": "Betaflight - Configurator",
     "short_name": "Betaflight",
@@ -17,12 +17,7 @@
             "persistent": false
         }
     },
-
-    "sandbox": {
-    "pages": ["tabs/map.html"]
-    },
-         
-        "permissions": [
+    "permissions": [
         "https://maps.googleapis.com/*",    
         "https://*.github.com/",
         "https://*.githubusercontent.com/",
@@ -38,8 +33,22 @@
         "alwaysOnTopWindows",
         {"usbDevices": [
             {"vendorId": 1155, "productId": 57105}
-        ]}
+        ]},
+        "webview"
     ],
+    "sockets": {
+        "tcp": {
+            "connect": "*:*"
+        }
+    },
+    "webview": {
+        "partitions": [
+            {
+                "name": "map",
+                "accessible_resources" : ["tabs/map.html", "tabs/map.js", "/images/icons/cf_icon_position.png"]
+            }
+        ]
+    },
 
     "icons": {
         "128": "images/bf_icon_128.png"
