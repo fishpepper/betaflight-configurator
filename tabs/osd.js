@@ -282,17 +282,17 @@ OSD.constants = {
     'SECOND',
     'HUNDREDTH'
   ],
-  ORIGIN: [
-    ORIGIN_C : 0,
-    ORIGIN_N : (1<<0),
-    ORIGIN_E : (1<<1),
-    ORIGIN_S : (1<<2),
-    ORIGIN_W : (1<<3),
-    ORIGIN_NE : (1<<0) | (1<<1),
-    ORIGIN_SE : (1<<2) | (1<<1),
-    ORIGIN_SW : (1<<2) | (1<<3),
-    ORIGIN_NW : (1<<0) | (1<<3)
-  ],
+  ORIGIN: {
+    C: 0,
+    N: (1<<0),
+    E: (1<<1),
+    S: (1<<2),
+    W: (1<<3),
+    NE: (1<<0) | (1<<1),
+    SE: (1<<2) | (1<<1),
+    SW: (1<<2) | (1<<3),
+    NW: (1<<0) | (1<<3)
+  },
   AHISIDEBARWIDTHPOSITION: 7,
   AHISIDEBARHEIGHTPOSITION: 3,
 
@@ -828,13 +828,13 @@ OSD.msp = {
         if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
           display_item.x = (data & 0x001F);
           display_item.y = ((data >> 5) & 0x001F);
-          display_item.origin = OSD.constants.ORIGIN.ORIGIN_NW;
+          display_item.origin = OSD.constants.ORIGIN.NW;
           display_item.isVisible = (data & OSD.constants.VISIBLE) != 0;
         } else {
           var pos = (data === -1) ? c.default_position : data;
           display_item.x = (pos & 0x001F);
           display_item.y = ((pos >> 5) & 0x001F);
-          display_item.origin = OSD.constants.ORIGIN.ORIGIN_NW;
+          display_item.origin = OSD.constants.ORIGIN.NW;
           display_item.isVisible = data !== -1;
         }
         return display_item;
@@ -944,11 +944,12 @@ OSD.msp = {
       // Parse display element positions
       while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
         var display_item ={};
-        var c = OSD.constants.DISPLAY_FIELDS[j];
+        var index = d.display_items.length;
+        var c = OSD.constants.DISPLAY_FIELDS[index];
         
         display_item.name = c.name;
         display_item.desc = c.desc;
-        display_item.index = d.display_items.length;
+        display_item.index = index;
         display_item.positionable = c.positionable;
         display_item.preview = c.preview;
         
@@ -1077,8 +1078,8 @@ OSD.GUI.preview = {
     //  if (position > OSD.data.display_size.total/2) {
     //    position = position - OSD.data.display_size.total;
     //  }
-    }
-    $('input.'+field_id+'.y').val(x).change();
+    //}
+    $('input.'+field_id+'.x').val(x).change();
     $('input.'+field_id+'.y').val(y).change();
     $('input.'+field_id+'.origin').val(origin).change();
   },
@@ -1414,7 +1415,7 @@ TABS.osd.initialize = function (callback) {
             if (OSD.data.preview_logo) {
               var charcode = 160;
               for (var y = 1; y < 5; y++) {
-                for (var x = 3; x < 27; x++)
+                for (var x = 3; x < 27; x++){
                     OSD.data.preview[y][x] = [{name: 'LOGO', positionable: false}, charcode++];
                 }
               }
