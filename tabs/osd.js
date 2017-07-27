@@ -282,6 +282,17 @@ OSD.constants = {
     'SECOND',
     'HUNDREDTH'
   ],
+  ORIGIN: [
+    ORIGIN_C : 0,
+    ORIGIN_N : (1<<0),
+    ORIGIN_E : (1<<1),
+    ORIGIN_S : (1<<2),
+    ORIGIN_W : (1<<3),
+    ORIGIN_NE : (1<<0) | (1<<1),
+    ORIGIN_SE : (1<<2) | (1<<1),
+    ORIGIN_SW : (1<<2) | (1<<3),
+    ORIGIN_NW : (1<<0) | (1<<3)
+  ],
   AHISIDEBARWIDTHPOSITION: 7,
   AHISIDEBARHEIGHTPOSITION: 3,
 
@@ -812,15 +823,19 @@ OSD.msp = {
    */
   helpers: {
     unpack: {
-      position: function(bits, c) {
+      position: function(data, c) {
         var display_item = {};
         if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
-          // size * y + x
-          display_item.position = FONT.constants.SIZES.LINE * ((bits >> 5) & 0x001F) + (bits & 0x001F);
-          display_item.isVisible = (bits & OSD.constants.VISIBLE) != 0;
+          display_item.x = (data & 0x001F);
+          display_item.y = ((data >> 5) & 0x001F);
+          display_item.origin = OSD.constants.ORIGIN.ORIGIN_NW;
+          display_item.isVisible = (data & OSD.constants.VISIBLE) != 0;
         } else {
-          display_item.position = (bits === -1) ? c.default_position : bits;
-          display_item.isVisible = bits !== -1;
+          var pos = (data === -1) ? c.default_position : data;
+          display_item.x = (pos & 0x001F);
+          display_item.y = ((pos >> 5) & 0x001F);
+          display_item.origin = OSD.constants.ORIGIN.ORIGIN_NW;
+          display_item.isVisible = data !== -1;
         }
         return display_item;
       },
@@ -836,11 +851,10 @@ OSD.msp = {
     pack: {
       position: function(display_item) {
         var isVisible = display_item.isVisible;
-        var position = display_item.position;
         if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
-          return (isVisible ? 0x0800 : 0) | (((position / FONT.constants.SIZES.LINE) & 0x001F) << 5) | (position % FONT.constants.SIZES.LINE);
+          return (isVisible ? 0x0800 : 0) | (((y) & 0x001F) << 5) | (x);
         } else {
-          return isVisible ? (position == -1 ? 0 : position): -1;
+          return isVisible ? ((((y) & 0x001F) << 5) | (x)): -1;
         }
       },
       timer: function(timer) {
@@ -868,7 +882,14 @@ OSD.msp = {
   encodeLayout: function(display_item) {
     var buffer = [];
     buffer.push8(display_item.index);
-    buffer.push16(this.helpers.pack.position(display_item));
+    if (semver.lt(CONFIG.apiVersion, "1.36.0")) {
+      buffer.push8(1); // screen id (0 = stats, else: normal)
+      buffer.push8(display_item.x);
+      buffer.push8(display_item.y);
+      buffer.push8((display_item.origin << 4) | (display_item.isVisible?1:0));
+    } else {
+      buffer.push16(this.helpers.pack.position(display_item));
+    }
     return buffer;
   },
   encodeStatistics: function(stat_item) {
@@ -918,32 +939,35 @@ OSD.msp = {
     d.stat_items = [];
     d.timers = [];
 
-    // Parse display element positions
-    while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
-      var v = null;
-      if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
-        v = view.readU16();
-      } else {
-        v = view.read16();
-      }
-      var j = d.display_items.length;
-      var c = OSD.constants.DISPLAY_FIELDS[j];
-      d.display_items.push($.extend({
-        name: c.name,
-        desc: c.desc,
-        index: j,
-        positionable: c.positionable,
-        preview: c.preview
-      }, this.helpers.unpack.position(v, c)));
-    }
-
     if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+        
+      // Parse display element positions
+      while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
+        var display_item ={};
+        var c = OSD.constants.DISPLAY_FIELDS[j];
+        
+        display_item.name = c.name;
+        display_item.desc = c.desc;
+        display_item.index = d.display_items.length;
+        display_item.positionable = c.positionable;
+        display_item.preview = c.preview;
+        
+        display_item.x = view.read8();
+        display_item.y = view.read8();
+        var flags = view.read8();
+        display_item.isVisible = (flags & 1) ? true : false;
+        display_item.origin = (flags & 0xF0)>>4;
+        
+        d.display_items.push(display_item);
+      }
+
       // Parse statistics display enable
       var expectedStatsCount = view.readU8();
       if (expectedStatsCount != OSD.constants.STATISTIC_FIELDS.length) {
         console.error("Firmware is transmitting a different number of statistics (" + expectedStatsCount + ") to what the configurator is expecting (" + OSD.constants.STATISTIC_FIELDS.length + ")");
       }
       while (view.offset < view.byteLength && d.stat_items.length < OSD.constants.STATISTIC_FIELDS.length) {
+        
         var v = view.readU8();
         var j = d.stat_items.length;
         var c = OSD.constants.STATISTIC_FIELDS[j];
@@ -975,6 +999,26 @@ OSD.msp = {
       while (expectedTimersCount > 0) {
         view.readU16();
         expectedTimersCount--;
+      }
+    } else {
+      // < 1.36.0  
+      // Parse display element positions
+      while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
+        var v = null;
+        if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
+          v = view.readU16();
+        } else {
+          v = view.read16();
+        }
+        var j = d.display_items.length;
+        var c = OSD.constants.DISPLAY_FIELDS[j];
+        d.display_items.push($.extend({
+          name: c.name,
+          desc: c.desc,
+          index: j,
+          positionable: c.positionable,
+          preview: c.preview
+        }, this.helpers.unpack.position(v, c)));
       }
     }
 
@@ -1018,21 +1062,25 @@ OSD.GUI.preview = {
   },
   onDrop: function(e) {
     var ev = e.originalEvent;
-    var position = $(this).removeAttr('style').data('position');
+    var x = $(this).removeAttr('style').data('x');
+    var y = $(this).removeAttr('style').data('y');
+    var origin = $(this).removeAttr('style').data('origin');
     var field_id = parseInt(ev.dataTransfer.getData('text/plain'))
     var display_item = OSD.data.display_items[field_id];
-    var overflows_line = FONT.constants.SIZES.LINE - ((position % FONT.constants.SIZES.LINE) + display_item.preview.length);
-    if (overflows_line < 0) {
-      position += overflows_line;
+    //var overflows_line = FONT.constants.SIZES.LINE - ((position % FONT.constants.SIZES.LINE) + display_item.preview.length);
+    //if (overflows_line < 0) {
+    //  position += overflows_line;
+    //}
+    //if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
+    //   unsigned now
+    //} else {
+    //  if (position > OSD.data.display_size.total/2) {
+    //    position = position - OSD.data.display_size.total;
+    //  }
     }
-    if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
-      // unsigned now
-    } else {
-      if (position > OSD.data.display_size.total/2) {
-        position = position - OSD.data.display_size.total;
-      }
-    }
-    $('input.'+field_id+'.position').val(position).change();
+    $('input.'+field_id+'.y').val(x).change();
+    $('input.'+field_id+'.y').val(y).change();
+    $('input.'+field_id+'.origin').val(origin).change();
   },
 };
 
@@ -1251,7 +1299,6 @@ TABS.osd.initialize = function (callback) {
             for (let field of OSD.data.display_items) {
               // versioning related, if the field doesn't exist at the current flight controller version, just skip it
               if (!field.name) { continue; }
-
               var checked = field.isVisible ? 'checked' : '';
               var $field = $('<div class="switchable-field field-'+field.index+'"/>');
               var desc = null;
@@ -1284,13 +1331,55 @@ TABS.osd.initialize = function (callback) {
               $field.append('<label for="'+field.name+'" class="char-label">'+inflection.titleize(field.name)+'</label>');
               if (field.positionable && field.isVisible) {
                 $field.append(
-                  $('<input type="number" class="'+field.index+' position"></input>')
+                  $('<input type="number" class="'+field.index+' x">')
                   .data('field', field)
-                  .val(field.position)
+                  .val(field.x)
                   .change($.debounce(250, function(e) {
                     var field = $(this).data('field');
-                    var position = parseInt($(this).val());
-                    field.position = position;
+                    var x = parseInt($(this).val());
+                    field.x = x;
+                    MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeLayout(field))
+                    .then(function() {
+                      updateOsdView();
+                    });
+                  }))
+                );  
+                $field.append(
+                  $('<input type="number" class="'+field.index+' y"></input>')
+                  .data('field', field)
+                  .val(field.x)
+                  .change($.debounce(250, function(e) {
+                    var field = $(this).data('field');
+                    var y = parseInt($(this).val());
+                    field.y = y;
+                    MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeLayout(field))
+                    .then(function() {
+                      updateOsdView();
+                    });
+                  }))
+                );
+                $field.append(
+                  $('<input type="number" class="'+field.index+' flags"></input>')
+                  .data('field', field)
+                  .val(field.isVisible)
+                  .change($.debounce(250, function(e) {
+                    var field = $(this).data('field');
+                    var isVisible = parseInt($(this).val());
+                    field.isVisible = isVisible;
+                    MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeLayout(field))
+                    .then(function() {
+                      updateOsdView();
+                    });
+                  }))
+                );
+                $field.append(
+                  $('<input type="number" class="'+field.index+' flags"></input>')
+                  .data('field', field)
+                  .val(field.origin)
+                  .change($.debounce(250, function(e) {
+                    var field = $(this).data('field');
+                    var origin = parseInt($(this).val());
+                    field.origin = origin;
                     MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeLayout(field))
                     .then(function() {
                       updateOsdView();
@@ -1303,29 +1392,37 @@ TABS.osd.initialize = function (callback) {
             GUI.switchery();
             // buffer the preview
             OSD.data.preview = [];
-            OSD.data.display_size.total = OSD.data.display_size.x * OSD.data.display_size.y;
-            for(let field of OSD.data.display_items) {
-              // reset fields that somehow end up off the screen
-              if (field.position > OSD.data.display_size.total) {
-                field.position = 0;
-              }
+            for (var y=0; y < OSD.data.display_size.y; y++) {
+              OSD.data.preview[y] = [];
             }
+            OSD.data.display_size.total = OSD.data.display_size.x * OSD.data.display_size.y;
+            // FIXME: handle off screen items here
+            //for(let field of OSD.data.display_items) {
+            //  // reset fields that somehow end up off the screen
+            //  if (field.position > OSD.data.display_size.total) {
+            //    field.position = 0;
+            //  }
+            //}
+            
             // clear the buffer
-            for(var i = 0; i < OSD.data.display_size.total; i++) {
-              OSD.data.preview.push([null, ' '.charCodeAt(0)]);
+            for (var y=0; y < OSD.data.display_size.y; y++) {
+              for (var x=0; x < OSD.data.display_size.x; x++) {
+                OSD.data.preview[y][x].push([null, ' '.charCodeAt(0)]);
+              }
             }
             // logo first, so it gets overwritten by subsequent elements
             if (OSD.data.preview_logo) {
-              var x = 160;
-              for (var i = 1; i < 5; i++) {
-                for (var j = 3; j < 27; j++)
-                    OSD.data.preview[i * 30 + j] = [{name: 'LOGO', positionable: false}, x++];
+              var charcode = 160;
+              for (var y = 1; y < 5; y++) {
+                for (var x = 3; x < 27; x++)
+                    OSD.data.preview[y][x] = [{name: 'LOGO', positionable: false}, charcode++];
+                }
               }
             }
             // draw all the displayed items and the drag and drop preview images
             for(let field of OSD.data.display_items) {
               if (!field.preview || !field.isVisible) { continue; }
-              var j = (field.position >= 0) ? field.position : field.position + OSD.data.display_size.total;
+              
               // create the preview image
               field.preview_img = new Image();
               var canvas = document.createElement('canvas');
@@ -1333,38 +1430,44 @@ TABS.osd.initialize = function (callback) {
               // fill the screen buffer
               for(var i = 0; i < field.preview.length; i++) {
                 var charCode = field.preview.charCodeAt(i);
-                OSD.data.preview[j++] = [field, charCode];
-                // draw the preview
-                var img = new Image();
-                img.src = FONT.draw(charCode);
-                ctx.drawImage(img, i*12, 0);
+                var y = field.y;
+                var x = field.x + i;
+                if (x <= OSD.data.display_size.x) {
+                  OSD.data.preview[y][x] = [field, charCode];
+                  // draw the preview
+                  var img = new Image();
+                  img.src = FONT.draw(charCode);
+                  ctx.drawImage(img, i*12, 0);
+                }
               }
               field.preview_img.src = canvas.toDataURL('image/png');
             }
-            var centerishPosition = 194;
+            var centerishPosition_x = OSD.data.display_size.x / 2;
+            var centerishPosition_y = OSD.data.display_size.y / 2;
+            
             // artificial horizon
             if ($('input[name="ARTIFICIAL_HORIZON"]').prop('checked')) {
               for (var i = 0; i < 9; i++) {
-                OSD.data.preview[centerishPosition - 4 + i] = SYM.AH_BAR9_0 + 4;
+                OSD.data.preview[centerishPosition_y][centerishPosition_x - 4 + i] = SYM.AH_BAR9_0 + 4;
               }
             }
             // crosshairs
             if ($('input[name="CROSSHAIRS"]').prop('checked')) {
-              OSD.data.preview[centerishPosition - 1] = SYM.AH_CENTER_LINE;
-              OSD.data.preview[centerishPosition + 1] = SYM.AH_CENTER_LINE_RIGHT;
-              OSD.data.preview[centerishPosition]     = SYM.AH_CENTER;
+              OSD.data.preview[centerishPosition_y][centerishPosition_x - 1] = SYM.AH_CENTER_LINE;
+              OSD.data.preview[centerishPosition_y][centerishPosition_x + 1] = SYM.AH_CENTER_LINE_RIGHT;
+              OSD.data.preview[centerishPosition_y][centerishPosition_x]     = SYM.AH_CENTER;
             }
             // sidebars
             if ($('input[name="HORIZON_SIDEBARS"]').prop('checked')) {
               var hudwidth  = OSD.constants.AHISIDEBARWIDTHPOSITION;
               var hudheight = OSD.constants.AHISIDEBARHEIGHTPOSITION;
               for (var i = -hudheight; i <= hudheight; i++) {
-                OSD.data.preview[centerishPosition - hudwidth + (i * FONT.constants.SIZES.LINE)] = SYM.AH_DECORATION;
-                OSD.data.preview[centerishPosition + hudwidth + (i * FONT.constants.SIZES.LINE)] = SYM.AH_DECORATION;
+                OSD.data.preview[centerishPosition_y + i][centerishPosition_x - hudwidth] = SYM.AH_DECORATION;
+                OSD.data.preview[centerishPosition_y + i][centerishPosition_x + hudwidth] = SYM.AH_DECORATION;
               }
               // AH level indicators
-              OSD.data.preview[centerishPosition-hudwidth+1] =  SYM.AH_LEFT;
-              OSD.data.preview[centerishPosition+hudwidth-1] =  SYM.AH_RIGHT;
+              OSD.data.preview[centerishPosition_y][centerishPosition_x-hudwidth+1] =  SYM.AH_LEFT;
+              OSD.data.preview[centerishPosition_y][centerishPosition_x+hudwidth-1] =  SYM.AH_RIGHT;
             }
             // render
             var $preview = $('.display-layout .preview').empty();
