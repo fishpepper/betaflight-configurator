@@ -850,11 +850,10 @@ OSD.msp = {
     },
     pack: {
       position: function(display_item) {
-        var isVisible = display_item.isVisible;
         if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
-          return (isVisible ? 0x0800 : 0) | (((y) & 0x001F) << 5) | (x);
+          return (isVisible ? 0x0800 : 0) | (((display_item.y) & 0x001F) << 5) | (display_item.x);
         } else {
-          return isVisible ? ((((y) & 0x001F) << 5) | (x)): -1;
+          return isVisible ? ((((display_item.y) & 0x001F) << 5) | (display_item.x)): -1;
         }
       },
       timer: function(timer) {
@@ -882,7 +881,7 @@ OSD.msp = {
   encodeLayout: function(display_item) {
     var buffer = [];
     buffer.push8(display_item.index);
-    if (semver.lt(CONFIG.apiVersion, "1.36.0")) {
+    if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
       buffer.push8(1); // screen id (0 = stats, else: normal)
       buffer.push8(display_item.x);
       buffer.push8(display_item.y);
@@ -939,6 +938,8 @@ OSD.msp = {
     d.stat_items = [];
     d.timers = [];
 
+    OSD.updateDisplaySize();
+    
     if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
         
       // Parse display element positions
@@ -953,12 +954,33 @@ OSD.msp = {
         display_item.positionable = c.positionable;
         display_item.preview = c.preview;
         
-        display_item.x = view.read8();
-        display_item.y = view.read8();
+        var x = view.read8();
+        var y = view.read8();
         var flags = view.read8();
+        
         display_item.isVisible = (flags & 1) ? true : false;
         display_item.origin = (flags & 0xF0)>>4;
         
+        // convert x,y to absolute coordinates:
+        // start on center
+        x = x + OSD.data.display_size.x / 2;
+        y = y + OSD.data.display_size.y / 2;
+        if (display_item.origin & OSD.constants.ORIGIN.N){
+            y = y - OSD.data.display_size.y / 2;
+        }
+        if (display_item.origin & OSD.constants.ORIGIN.E){
+            x = x + OSD.data.display_size.x / 2;
+        }
+        if (display_item.origin & OSD.constants.ORIGIN.S){
+            y = y + OSD.data.display_size.y / 2;
+        }
+        if (display_item.origin & OSD.constants.ORIGIN.W){
+            x = x - OSD.data.display_size.x / 2;
+        }
+        
+        // store x/y
+        display_item.x = x;
+        display_item.y = y;
         d.display_items.push(display_item);
       }
 
@@ -1029,8 +1051,6 @@ OSD.msp = {
         item.preview = item.preview(d);
       }
     }
-
-    OSD.updateDisplaySize();
   }
 };
 
@@ -1408,7 +1428,7 @@ TABS.osd.initialize = function (callback) {
             // clear the buffer
             for (var y=0; y < OSD.data.display_size.y; y++) {
               for (var x=0; x < OSD.data.display_size.x; x++) {
-                OSD.data.preview[y][x].push([null, ' '.charCodeAt(0)]);
+                OSD.data.preview[y].push([null, ' '.charCodeAt(0)]);
               }
             }
             // logo first, so it gets overwritten by subsequent elements
@@ -1433,7 +1453,7 @@ TABS.osd.initialize = function (callback) {
                 var charCode = field.preview.charCodeAt(i);
                 var y = field.y;
                 var x = field.x + i;
-                if (x <= OSD.data.display_size.x) {
+                if (x < OSD.data.display_size.x) {
                   OSD.data.preview[y][x] = [field, charCode];
                   // draw the preview
                   var img = new Image();
