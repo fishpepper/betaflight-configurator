@@ -978,9 +978,12 @@ OSD.msp = {
             x = x - OSD.data.display_size.x / 2;
         }
         
+        // we just converted it to NW origin
+        display_item.origin = OSD.constants.ORIGIN.N | OSD.constants.ORIGIN.W;
         // store x/y
         display_item.x = x;
         display_item.y = y;
+        
         d.display_items.push(display_item);
       }
 
@@ -1083,9 +1086,12 @@ OSD.GUI.preview = {
   },
   onDrop: function(e) {
     var ev = e.originalEvent;
-    var x = $(this).removeAttr('style').data('x');
-    var y = $(this).removeAttr('style').data('y');
-    var origin = $(this).removeAttr('style').data('origin');
+    
+    var attr = $(this).removeAttr('style');
+    var x = attr.data('x');
+    var y = attr.data('y');
+    var origin = attr.data('origin');
+    
     var field_id = parseInt(ev.dataTransfer.getData('text/plain'))
     var display_item = OSD.data.display_items[field_id];
     //var overflows_line = FONT.constants.SIZES.LINE - ((position % FONT.constants.SIZES.LINE) + display_item.preview.length);
@@ -1359,42 +1365,20 @@ TABS.osd.initialize = function (callback) {
                     var field = $(this).data('field');
                     var x = parseInt($(this).val());
                     field.x = x;
-                    MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeLayout(field))
-                    .then(function() {
-                      updateOsdView();
-                    });
                   }))
                 );  
                 $field.append(
                   $('<input type="number" class="'+field.index+' y"></input>')
                   .data('field', field)
-                  .val(field.x)
+                  .val(field.y)
                   .change($.debounce(250, function(e) {
                     var field = $(this).data('field');
                     var y = parseInt($(this).val());
                     field.y = y;
-                    MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeLayout(field))
-                    .then(function() {
-                      updateOsdView();
-                    });
                   }))
                 );
                 $field.append(
-                  $('<input type="number" class="'+field.index+' flags"></input>')
-                  .data('field', field)
-                  .val(field.isVisible)
-                  .change($.debounce(250, function(e) {
-                    var field = $(this).data('field');
-                    var isVisible = parseInt($(this).val());
-                    field.isVisible = isVisible;
-                    MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeLayout(field))
-                    .then(function() {
-                      updateOsdView();
-                    });
-                  }))
-                );
-                $field.append(
-                  $('<input type="number" class="'+field.index+' flags"></input>')
+                  $('<input type="number" class="'+field.index+' origin"></input>')
                   .data('field', field)
                   .val(field.origin)
                   .change($.debounce(250, function(e) {
@@ -1453,7 +1437,13 @@ TABS.osd.initialize = function (callback) {
                 var charCode = field.preview.charCodeAt(i);
                 var y = field.y;
                 var x = field.x + i;
-                if (x < OSD.data.display_size.x) {
+                if (x >= OSD.data.display_size.x) {
+                  console.log('display_item ', field.name, ' x pos exceeded (', x , ')');
+                } else if (y >= OSD.data.display_size.y) {
+                  console.log('display_item ', field.name, ' y pos exceeded (', y , ')');
+                } else {
+                  // charCodeA to add 
+                  console.log('display_item ', field.name, ' safe to add');
                   OSD.data.preview[y][x] = [field, charCode];
                   // draw the preview
                   var img = new Image();
@@ -1463,66 +1453,78 @@ TABS.osd.initialize = function (callback) {
               }
               field.preview_img.src = canvas.toDataURL('image/png');
             }
-            var centerishPosition_x = OSD.data.display_size.x / 2;
-            var centerishPosition_y = OSD.data.display_size.y / 2;
+            var centerishPositionX = OSD.data.display_size.x / 2;
+            var centerishPositionY = OSD.data.display_size.y / 2;
             
             // artificial horizon
             if ($('input[name="ARTIFICIAL_HORIZON"]').prop('checked')) {
               for (var i = 0; i < 9; i++) {
-                OSD.data.preview[centerishPosition_y][centerishPosition_x - 4 + i] = SYM.AH_BAR9_0 + 4;
+                OSD.data.preview[centerishPositionY][centerishPositionX - 4 + i] = SYM.AH_BAR9_0 + 4;
               }
             }
             // crosshairs
             if ($('input[name="CROSSHAIRS"]').prop('checked')) {
-              OSD.data.preview[centerishPosition_y][centerishPosition_x - 1] = SYM.AH_CENTER_LINE;
-              OSD.data.preview[centerishPosition_y][centerishPosition_x + 1] = SYM.AH_CENTER_LINE_RIGHT;
-              OSD.data.preview[centerishPosition_y][centerishPosition_x]     = SYM.AH_CENTER;
+              OSD.data.preview[centerishPositionY][centerishPositionX - 1] = SYM.AH_CENTER_LINE;
+              OSD.data.preview[centerishPositionY][centerishPositionX + 1] = SYM.AH_CENTER_LINE_RIGHT;
+              OSD.data.preview[centerishPositionY][centerishPositionX]     = SYM.AH_CENTER;
             }
             // sidebars
             if ($('input[name="HORIZON_SIDEBARS"]').prop('checked')) {
               var hudwidth  = OSD.constants.AHISIDEBARWIDTHPOSITION;
               var hudheight = OSD.constants.AHISIDEBARHEIGHTPOSITION;
               for (var i = -hudheight; i <= hudheight; i++) {
-                OSD.data.preview[centerishPosition_y + i][centerishPosition_x - hudwidth] = SYM.AH_DECORATION;
-                OSD.data.preview[centerishPosition_y + i][centerishPosition_x + hudwidth] = SYM.AH_DECORATION;
+                OSD.data.preview[centerishPositionY + i][centerishPositionX - hudwidth] = SYM.AH_DECORATION;
+                OSD.data.preview[centerishPositionY + i][centerishPositionX + hudwidth] = SYM.AH_DECORATION;
               }
               // AH level indicators
-              OSD.data.preview[centerishPosition_y][centerishPosition_x-hudwidth+1] =  SYM.AH_LEFT;
-              OSD.data.preview[centerishPosition_y][centerishPosition_x+hudwidth-1] =  SYM.AH_RIGHT;
+              OSD.data.preview[centerishPositionY][centerishPositionX - hudwidth + 1] =  SYM.AH_LEFT;
+              OSD.data.preview[centerishPositionY][centerishPositionX + hudwidth - 1] =  SYM.AH_RIGHT;
             }
             // render
             var $preview = $('.display-layout .preview').empty();
             var $row = $('<div class="row"/>');
-            for(var i = 0; i < OSD.data.display_size.total;) {
-              var charCode = OSD.data.preview[i];
-              if (typeof charCode === 'object') {
-                var field = OSD.data.preview[i][0];
-                var charCode = OSD.data.preview[i][1];
-              }
-              var $img = $('<div class="char" draggable><img src='+FONT.draw(charCode)+'></img></div>')
-                .on('mouseenter', OSD.GUI.preview.onMouseEnter)
-                .on('mouseleave', OSD.GUI.preview.onMouseLeave)
-                .on('dragover', OSD.GUI.preview.onDragOver)
-                .on('dragleave', OSD.GUI.preview.onDragLeave)
-                .on('drop', OSD.GUI.preview.onDrop)
-                .data('field', field)
-                .data('position', i);
-              if (field && field.positionable) {
-                $img
-                  .addClass('field-'+field.index)
+            for (var y=0; y < OSD.data.display_size.y; y++) {
+              for (var x=0; x < OSD.data.display_size.x; x++) {
+                var preview_item = OSD.data.preview[y][x];
+                
+                if (typeof preview_item === 'object') {
+                  var field    = preview_item[0];
+                  var charCode = preview_item[1];
+                  if (field) {
+                    var origin   = field.origin;
+                  } else {
+                    var origin   = 0;
+                  }
+                } else {
+                  var charCode = preview_item;
+                  var origin   = 0;
+                }
+                var $img = $('<div class="char" draggable><img src='+FONT.draw(charCode)+'></img></div>')
+                  .on('mouseenter', OSD.GUI.preview.onMouseEnter)
+                  .on('mouseleave', OSD.GUI.preview.onMouseLeave)
+                  .on('dragover', OSD.GUI.preview.onDragOver)
+                  .on('dragleave', OSD.GUI.preview.onDragLeave)
+                  .on('drop', OSD.GUI.preview.onDrop)
                   .data('field', field)
-                  .prop('draggable', true)
-                  .on('dragstart', OSD.GUI.preview.onDragStart);
+                  .data('x', x)
+                  .data('y', y)
+                  .data('origin', origin);
+                if (field && field.positionable) {
+                  $img
+                    .addClass('field-'+field.index)
+                    .data('field', field)
+                    .prop('draggable', true)
+                    .on('dragstart', OSD.GUI.preview.onDragStart);
+                }
+                else {
+                }
+                $row.append($img);
+                
               }
-              else {
-              }
-              $row.append($img);
-              if (++i % OSD.data.display_size.x == 0) {
-                $preview.append($row);
-                $row = $('<div class="row"/>');
-              }
+              $preview.append($row);
+              $row = $('<div class="row"/>');
             }
-
+            
             // Remove last tooltips
             for (var tt of OSD.data.tooltips) {
               tt.destroy();
