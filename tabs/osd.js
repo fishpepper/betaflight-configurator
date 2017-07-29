@@ -825,7 +825,41 @@ OSD.msp = {
     unpack: {
       position: function(data, c) {
         var display_item = {};
-        if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
+        if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+          var x = data[0];
+          var y = data[1];
+          var isVisible = data[2];
+          var origin = data[3];
+          
+          if (isVisible) console.debug("conv " + x + " " + y + "(" + origin + ")");
+          // convert x,y to absolute, ORIGIN.NW based coordinates:
+          // start on center
+          var half_x = (OSD.data.display_size.x-1) / 2;
+          var half_y = (OSD.data.display_size.y-1) / 2;
+          x = x + half_x;
+          y = y + half_y;
+          
+          if (origin & OSD.constants.ORIGIN.N){
+            y = y - half_y;
+          }
+          if (origin & OSD.constants.ORIGIN.E){
+            x = x + half_x;
+          }
+          if (origin & OSD.constants.ORIGIN.S){
+            y = y + half_y;
+          }
+          if (origin & OSD.constants.ORIGIN.W){
+            x = x - half_x;
+          }
+        
+          if (isVisible) console.debug("to " + x + " " + y + "(" + origin + ")" );
+          // we just converted it to NW origin
+          display_item.origin = OSD.constants.ORIGIN.NW;
+          display_item.x = Math.ceil(x);
+          display_item.y = Math.ceil(y);
+          display_item.isVisible = isVisible;
+        
+        } else if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
           display_item.x = (data & 0x001F);
           display_item.y = ((data >> 5) & 0x001F);
           display_item.origin = OSD.constants.ORIGIN.NW;
@@ -836,6 +870,13 @@ OSD.msp = {
           display_item.y = ((pos >> 5) & 0x001F);
           display_item.origin = OSD.constants.ORIGIN.NW;
           display_item.isVisible = data !== -1;
+        }
+        if (display_item.isVisible) {
+          console.debug("added display_item at " +
+          " x: " + display_item.x + 
+          " y: " + display_item.y + 
+          " origin: " + display_item.origin + 
+          " visbile: " + display_item.isVisible);
         }
         return display_item;
       },
@@ -882,6 +923,11 @@ OSD.msp = {
     var buffer = [];
     buffer.push8(display_item.index);
     if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+      console.debug(
+        "storing item " + display_item.name + 
+        " x: " + display_item.x +
+        " y: " + display_item.y +
+        " origin: " + display_item.origin);
       buffer.push8(1); // screen id (0 = stats, else: normal)
       buffer.push8(display_item.x);
       buffer.push8(display_item.y);
@@ -940,7 +986,7 @@ OSD.msp = {
 
     OSD.updateDisplaySize();
     
-    if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+   /* if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
         
       // Parse display element positions
       while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
@@ -987,13 +1033,44 @@ OSD.msp = {
         d.display_items.push(display_item);
       }
 
+    } else {*/
+    // < 1.36.0  
+    
+    // Parse display element positions
+    while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
+      var v = null;
+      if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+        var x = view.read8();
+        var y = view.read8();
+        var flags = view.read8();
+        // console.debug("RX " + x + " " + y + " " + flags);
+        var visible = (flags & 1) ? true : false;
+        var origin = flags >> 4;
+        
+        v = [x, y, visible, origin];
+      } else if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
+        v = view.readU16();
+      } else {
+        v = view.read16();
+      }
+      var j = d.display_items.length;
+      var c = OSD.constants.DISPLAY_FIELDS[j];
+      d.display_items.push($.extend({
+        name: c.name,
+        desc: c.desc,
+        index: j,
+        positionable: c.positionable,
+        preview: c.preview
+      }, this.helpers.unpack.position(v, c)));
+    }
+
+    if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
       // Parse statistics display enable
       var expectedStatsCount = view.readU8();
       if (expectedStatsCount != OSD.constants.STATISTIC_FIELDS.length) {
         console.error("Firmware is transmitting a different number of statistics (" + expectedStatsCount + ") to what the configurator is expecting (" + OSD.constants.STATISTIC_FIELDS.length + ")");
       }
       while (view.offset < view.byteLength && d.stat_items.length < OSD.constants.STATISTIC_FIELDS.length) {
-        
         var v = view.readU8();
         var j = d.stat_items.length;
         var c = OSD.constants.STATISTIC_FIELDS[j];
@@ -1026,34 +1103,14 @@ OSD.msp = {
         view.readU16();
         expectedTimersCount--;
       }
-    } else {
-      // < 1.36.0  
-      // Parse display element positions
-      while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
-        var v = null;
-        if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
-          v = view.readU16();
-        } else {
-          v = view.read16();
-        }
-        var j = d.display_items.length;
-        var c = OSD.constants.DISPLAY_FIELDS[j];
-        d.display_items.push($.extend({
-          name: c.name,
-          desc: c.desc,
-          index: j,
-          positionable: c.positionable,
-          preview: c.preview
-        }, this.helpers.unpack.position(v, c)));
-      }
     }
 
     // Generate OSD element previews that are defined by a function
     for (let item of d.display_items) {
       if (typeof(item.preview) === 'function') {
         item.preview = item.preview(d);
-      }
     }
+}
   }
 };
 
@@ -1087,11 +1144,7 @@ OSD.GUI.preview = {
   onDrop: function(e) {
     var ev = e.originalEvent;
     
-    var attr = $(this).removeAttr('style');
-    var x = attr.data('x');
-    var y = attr.data('y');
-    var origin = attr.data('origin');
-    
+    var data = $(this).removeAttr('style').data('position');
     var field_id = parseInt(ev.dataTransfer.getData('text/plain'))
     var display_item = OSD.data.display_items[field_id];
     //var overflows_line = FONT.constants.SIZES.LINE - ((position % FONT.constants.SIZES.LINE) + display_item.preview.length);
@@ -1105,9 +1158,7 @@ OSD.GUI.preview = {
     //    position = position - OSD.data.display_size.total;
     //  }
     //}
-    $('input.'+field_id+'.x').val(x).change();
-    $('input.'+field_id+'.y').val(y).change();
-    $('input.'+field_id+'.origin').val(origin).change();
+    $('input.'+field_id+'.position').val(data).change();
   },
 };
 
@@ -1358,33 +1409,50 @@ TABS.osd.initialize = function (callback) {
               $field.append('<label for="'+field.name+'" class="char-label">'+inflection.titleize(field.name)+'</label>');
               if (field.positionable && field.isVisible) {
                 $field.append(
-                  $('<input type="number" class="'+field.index+' x">')
+                  $('<input type="text" class="'+field.index+' position">')
                   .data('field', field)
                   .val(field.x)
-                  .change($.debounce(250, function(e) {
-                    var field = $(this).data('field');
-                    var x = parseInt($(this).val());
-                    field.x = x;
-                  }))
-                );  
-                $field.append(
-                  $('<input type="number" class="'+field.index+' y"></input>')
-                  .data('field', field)
                   .val(field.y)
                   .change($.debounce(250, function(e) {
                     var field = $(this).data('field');
-                    var y = parseInt($(this).val());
-                    field.y = y;
-                  }))
-                );
-                $field.append(
-                  $('<input type="number" class="'+field.index+' origin"></input>')
-                  .data('field', field)
-                  .val(field.origin)
-                  .change($.debounce(250, function(e) {
-                    var field = $(this).data('field');
-                    var origin = parseInt($(this).val());
-                    field.origin = origin;
+                    var data = $(this).val().split(',').map(Number);
+                    var pos = { x: data[0], y: data[1] }
+                    
+                    var max_x = OSD.data.display_size.x - 1;
+                    var max_y = OSD.data.display_size.y - 1;
+                    
+                    var origin_coordinate = {};
+                    origin_coordinate[OSD.constants.ORIGIN.C] = { x: Math.ceil(max_x/2), y: Math.ceil(max_y/2)};
+                    origin_coordinate[OSD.constants.ORIGIN.N] = { x: Math.ceil(max_x/2), y: 0};
+                    origin_coordinate[OSD.constants.ORIGIN.E] = { x: max_x, y: Math.ceil(max_y/2)};
+                    origin_coordinate[OSD.constants.ORIGIN.S] = { x: Math.ceil(max_x/2), y: max_y};
+                    origin_coordinate[OSD.constants.ORIGIN.W] = { x: 0, y: Math.ceil(max_y/2)};
+                    origin_coordinate[OSD.constants.ORIGIN.NE] = { x: max_x, y: 0};
+                    origin_coordinate[OSD.constants.ORIGIN.SE] = { x: max_x, y: max_y};
+                    origin_coordinate[OSD.constants.ORIGIN.SW] = { x: 0, y: max_y};
+                    origin_coordinate[OSD.constants.ORIGIN.NW] = { x: 0, y: 0};
+                    
+                    
+                    // calculate closest origin:
+                    var best_dist = Infinity;
+                    var best_origin = 0;
+                    for (var origin_key in OSD.constants.ORIGIN) {
+                      var origin = OSD.constants.ORIGIN[origin_key];
+                      var dist = Math.sqrt(
+                        Math.pow(pos.x - origin_coordinate[origin].x, 2) + 
+                        Math.pow(pos.y - origin_coordinate[origin].y, 2));
+                      if (dist < best_dist) {
+                        best_dist = dist;
+                        best_origin = origin;
+                      }
+                    }
+                    
+                    // input is normal x,y coordinate (=ORIGIN_NW)
+                    // convert to relative to closest origin
+                    field.x = pos.x - origin_coordinate[best_origin].x;
+                    field.y = pos.y - origin_coordinate[best_origin].y;
+                    field.origin  = best_origin;
+                    
                     MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeLayout(field))
                     .then(function() {
                       updateOsdView();
@@ -1506,9 +1574,7 @@ TABS.osd.initialize = function (callback) {
                   .on('dragleave', OSD.GUI.preview.onDragLeave)
                   .on('drop', OSD.GUI.preview.onDrop)
                   .data('field', field)
-                  .data('x', x)
-                  .data('y', y)
-                  .data('origin', origin);
+                  .data('position', x.toString() + "," + y.toString())
                 if (field && field.positionable) {
                   $img
                     .addClass('field-'+field.index)
