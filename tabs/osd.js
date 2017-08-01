@@ -228,7 +228,8 @@ OSD.initData = function() {
     last_positions: {},
     preview_logo: true,
     preview: [],
-    tooltips: []
+    tooltips: [],
+    display_size: { x: 0, y: 0, total: 0 }
   };
 };
 OSD.initData();
@@ -803,12 +804,15 @@ OSD.updateDisplaySize = function() {
   if (video_type == 'AUTO') {
     video_type = 'PAL';
   }
+  
   // compute the size
-  OSD.data.display_size = {
-    x: FONT.constants.SIZES.LINE,
-    y: OSD.constants.VIDEO_LINES[video_type],
-    total: null
-  };
+  if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+    // x/y size is set by msp update
+  } else {
+    OSD.data.display_size.x = FONT.constants.SIZES.LINE;
+    OSD.data.display_size.y = OSD.constants.VIDEO_LINES[video_type];
+  }
+  OSD.data.display_size.total = OSD.data.display_size.x * OSD.data.display_size.y;
 };
 
 
@@ -832,7 +836,7 @@ OSD.msp = {
           var isVisible = data[2];
           var origin = data[3];
           
-          if (isVisible) console.debug("conv " + x + " " + y + "(" + origin + ")");
+          if (isVisible) console.debug("conv " + x + " " + y + "( " + origin + ")");
           // convert x,y to absolute, ORIGIN.NW based coordinates:
           // start on center
           var half_x = (OSD.data.display_size.x-1) / 2;
@@ -853,13 +857,14 @@ OSD.msp = {
             x = x - half_x;
           }
         
-          if (isVisible) console.debug("to " + x + " " + y + "(" + origin + ")" );
           // we just converted it to NW origin
           display_item.origin = OSD.constants.ORIGIN.NW;
           display_item.x = Math.ceil(x);
           display_item.y = Math.ceil(y);
           display_item.isVisible = isVisible;
         
+          if (isVisible) console.debug("to " + x + " " + y + " (" + origin + ")" );
+          
         } else if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
           display_item.x = (data & 0x001F);
           display_item.y = ((data >> 5) & 0x001F);
@@ -964,6 +969,9 @@ OSD.msp = {
         d.video_system = view.readU8();
         if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
           d.device = view.readU8();
+          d.display_size.y = view.readU8();
+          d.display_size.x = view.readU8();
+          
         }
         if (semver.gte(CONFIG.apiVersion, "1.21.0") && bit_check(d.flags, 0)) {
           d.unit_mode = view.readU8();
@@ -992,56 +1000,6 @@ OSD.msp = {
     d.timers = [];
 
     OSD.updateDisplaySize();
-    
-   /* if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
-        
-      // Parse display element positions
-      while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
-        var display_item ={};
-        var index = d.display_items.length;
-        var c = OSD.constants.DISPLAY_FIELDS[index];
-        
-        display_item.name = c.name;
-        display_item.desc = c.desc;
-        display_item.index = index;
-        display_item.positionable = c.positionable;
-        display_item.preview = c.preview;
-        
-        var x = view.read8();
-        var y = view.read8();
-        var flags = view.read8();
-        
-        display_item.isVisible = (flags & 1) ? true : false;
-        display_item.origin = (flags & 0xF0)>>4;
-        
-        // convert x,y to absolute coordinates:
-        // start on center
-        x = x + OSD.data.display_size.x / 2;
-        y = y + OSD.data.display_size.y / 2;
-        if (display_item.origin & OSD.constants.ORIGIN.N){
-            y = y - OSD.data.display_size.y / 2;
-        }
-        if (display_item.origin & OSD.constants.ORIGIN.E){
-            x = x + OSD.data.display_size.x / 2;
-        }
-        if (display_item.origin & OSD.constants.ORIGIN.S){
-            y = y + OSD.data.display_size.y / 2;
-        }
-        if (display_item.origin & OSD.constants.ORIGIN.W){
-            x = x - OSD.data.display_size.x / 2;
-        }
-        
-        // we just converted it to NW origin
-        display_item.origin = OSD.constants.ORIGIN.N | OSD.constants.ORIGIN.W;
-        // store x/y
-        display_item.x = x;
-        display_item.y = y;
-        
-        d.display_items.push(display_item);
-      }
-
-    } else {*/
-    // < 1.36.0  
     
     // Parse display element positions
     while (view.offset < view.byteLength && d.display_items.length < OSD.constants.DISPLAY_FIELDS.length) {
@@ -1229,7 +1187,7 @@ TABS.osd.initialize = function (callback) {
                 'tinyOSD'
               ];
       
-              var osd_e = $('select.osd_device');
+              var osd_e = $('select.osd_device').empty();;
               for (var i = 0; i < OSDtypes.length; i++) {
                 osd_e.append('<option value="' + i + '">' + OSDtypes[i] + '</option>');
               }
@@ -1501,7 +1459,7 @@ TABS.osd.initialize = function (callback) {
             for (var y=0; y < OSD.data.display_size.y; y++) {
               OSD.data.preview[y] = [];
             }
-            OSD.data.display_size.total = OSD.data.display_size.x * OSD.data.display_size.y;
+            
             // FIXME: handle off screen items here
             //for(let field of OSD.data.display_items) {
             //  // reset fields that somehow end up off the screen
@@ -1554,8 +1512,8 @@ TABS.osd.initialize = function (callback) {
               }
               field.preview_img.src = canvas.toDataURL('image/png');
             }
-            var centerishPositionX = OSD.data.display_size.x / 2;
-            var centerishPositionY = OSD.data.display_size.y / 2;
+            var centerishPositionX = Math.ceil(OSD.data.display_size.x / 2);
+            var centerishPositionY = Math.ceil(OSD.data.display_size.y / 2);
             
             // artificial horizon
             if ($('input[name="ARTIFICIAL_HORIZON"]').prop('checked')) {
