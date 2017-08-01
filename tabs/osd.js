@@ -218,6 +218,7 @@ var OSD = OSD || {};
 // parsed fc output and output to fc, used by to OSD.msp.encode
 OSD.initData = function() {
   OSD.data = {
+    device: null,
     video_system: null,
     unit_mode: null,
     alarms: [],
@@ -904,6 +905,9 @@ OSD.msp = {
   },
   encodeOther: function() {
     var result = [-1, OSD.data.video_system];
+    if (OSD.data.state.haveOsdFeature && semver.gte(CONFIG.apiVersion, "1.36.0")) {
+      result.push8(OSD.data.device);
+    }
     if (OSD.data.state.haveOsdFeature && semver.gte(CONFIG.apiVersion, "1.21.0")) {
       result.push8(OSD.data.unit_mode);
       // watch out, order matters! match the firmware
@@ -958,6 +962,9 @@ OSD.msp = {
     if (d.flags > 0) {
       if (payload.length > 1) {
         d.video_system = view.readU8();
+        if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+          d.device = view.readU8();
+        }
         if (semver.gte(CONFIG.apiVersion, "1.21.0") && bit_check(d.flags, 0)) {
           d.unit_mode = view.readU8();
           d.alarms = {};
@@ -1212,6 +1219,32 @@ TABS.osd.initialize = function (callback) {
                 updateOsdView();
               })
             );
+            
+            // OSD device
+            if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+              var OSDtypes = [
+                'none',
+                'MAX7456',
+                'MSP',
+                'tinyOSD'
+              ];
+      
+              var osd_e = $('select.osd_device');
+              for (var i = 0; i < OSDtypes.length; i++) {
+                osd_e.append('<option value="' + i + '">' + OSDtypes[i] + '</option>');
+              }
+
+              osd_e.change(function () {
+                OSD.data.device = parseInt($(this).val());
+                MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
+                .then(function() {
+                  updateOsdView();
+                });
+              });
+
+              // select current osd device
+              osd_e.val(OSD.data.device);
+            }
 
             // video mode
             var $videoTypes = $('.video-types').empty();
