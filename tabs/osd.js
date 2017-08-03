@@ -396,7 +396,7 @@ OSD.constants = {
       desc: 'osdDescElementCraftName',
       default_position: -77,
       positionable: true,
-      preview: 'CRAFT_NAME'
+      preview: '   CRAFT_NAME   '
     },
     ALTITUDE: {
       name: 'ALTITUDE',
