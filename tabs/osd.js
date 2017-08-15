@@ -229,7 +229,9 @@ OSD.initData = function() {
     preview_logo: true,
     preview: [],
     tooltips: [],
-    display_size: { x: 0, y: 0, total: 0 }
+    display_size: { x: 0, y: 0, total: 0 },
+    brightness: { black: 0, white: 0},
+    invert : false
   };
 };
 OSD.initData();
@@ -912,6 +914,9 @@ OSD.msp = {
     var result = [-1, OSD.data.video_system];
     if (OSD.data.state.haveOsdFeature && semver.gte(CONFIG.apiVersion, "1.36.0")) {
       result.push8(OSD.data.device);
+      result.push8(OSD.data.invert);
+      result.push8(OSD.data.brightness.black);
+      result.push8(OSD.data.brightness.white);
     }
     if (OSD.data.state.haveOsdFeature && semver.gte(CONFIG.apiVersion, "1.21.0")) {
       result.push8(OSD.data.unit_mode);
@@ -969,9 +974,11 @@ OSD.msp = {
         d.video_system = view.readU8();
         if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
           d.device = view.readU8();
-          d.display_size.y = view.readU8();
-          d.display_size.x = view.readU8();
-          
+          d.display_size.y   = view.readU8();
+          d.display_size.x   = view.readU8();
+          d.invert           = view.readU8();
+          d.brightness.black = view.readU8();
+          d.brightness.white = view.readU8();
         }
         if (semver.gte(CONFIG.apiVersion, "1.21.0") && bit_check(d.flags, 0)) {
           d.unit_mode = view.readU8();
@@ -1222,6 +1229,64 @@ TABS.osd.initialize = function (callback) {
                 updateOsdView();
               });
             });
+            
+            if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+              // video brightness
+              $('.video-brightness-container').show();
+              
+              // invert video overlay?
+              var $videoInvert = $('input[name="videoInvert"]');
+              $videoInvert.prop('checked', OSD.data.invert);
+              $videoInvert.change(function (){
+                OSD.data.invert = $(this).prop('checked');
+                MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
+                .then(function() {
+                  updateOsdView();
+                });
+              });
+              
+              
+              var videoBrightnessWhiteNumberElement = $('input[name="videoBrightnessWhite-number"]');
+              var videoBrightnessWhiteRangeElement = $('input[name="videoBrightnessWhite-range"]');
+              
+              // set current value
+              videoBrightnessWhiteNumberElement.val(OSD.data.brightness.white);
+              videoBrightnessWhiteRangeElement.val(OSD.data.brightness.white);
+              
+              videoBrightnessWhiteNumberElement.change(function () {
+                videoBrightnessWhiteRangeElement.val($(this).val());
+                OSD.data.brightness.white = $(this).val();
+              });
+              videoBrightnessWhiteRangeElement.change(function () {
+                videoBrightnessWhiteNumberElement.val($(this).val());
+                OSD.data.brightness.white = $(this).val();
+                MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
+                .then(function() {
+                  updateOsdView();
+                });
+              });
+            
+              var videoBrightnessBlackNumberElement = $('input[name="videoBrightnessBlack-number"]');
+              var videoBrightnessBlackRangeElement = $('input[name="videoBrightnessBlack-range"]');
+              
+              videoBrightnessBlackNumberElement.val(OSD.data.brightness.black);
+              videoBrightnessBlackRangeElement.val(OSD.data.brightness.black);
+              
+              videoBrightnessBlackNumberElement.change(function () {
+                videoBrightnessBlackRangeElement.val($(this).val());
+                OSD.data.brightness.black = $(this).val();
+              });
+              videoBrightnessBlackRangeElement.change(function () {
+                videoBrightnessBlackNumberElement.val($(this).val());
+                OSD.data.brightness.black = $(this).val();
+                MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
+                .then(function() {
+                  updateOsdView();
+                });
+              });
+              
+              
+            }
 
             if (semver.gte(CONFIG.apiVersion, "1.21.0")) {
               // units

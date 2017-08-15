@@ -454,6 +454,22 @@ button {
   display: inline !important;
 }
 
+.tab-osd table.video-brightness td {
+    width: 60%;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.tab-osd table.video-brightness td:first-child {
+    width: 10%;
+}
+
+.tab-osd table.video-brightness td:last-child {
+    width: 30%;
+}
+
+
+
 @media only screen and (max-width: 1055px) , only screen and (max-device-width: 1055px) {
   .tab-osd .content_wrapper {
     height: calc(100% - 30px);

@@ -63,6 +63,29 @@
                             <div class="video-types"></div>
                         </div>
                     </div>
+                    <div class="gui_box grey video-brightness-container requires-osd-feature" style="display:none;">
+                        <div class="gui_box_titlebar">
+                            <div class="spacer_box_title">Brightness
+                            </div>
+                        </div>
+                        <div class="spacer_box">
+                          <table class="video-brightness">
+                            <tr class="videoBrightnessWhite" style="height:30px;">
+                              <td><input type="number" name="videoBrightnessWhite-number" step="1" min="0" max="100"/></td>
+                              <td class="slider"><input type="range" name="videoBrightnessWhite-range" step="0" min="0" max="100"/></td>
+                              <td><label>White</label></td>
+                            </tr>  
+                            <tr class="videoBrightnessBlack" style="height:30px;">
+                              <td><input type="number" name="videoBrightnessBlack-number" step="1" min="0" max="100"/></td>
+                              <td class="slider"><input type="range" name="videoBrightnessBlack-range" step="0" min="0" max="100"/></td>
+                              <td><label>Black</label></td>
+                            </tr> 
+                            <tr class="videoInvert" style="height:30px;">
+                              <td colspan="3"><label for="videoInvert">Inverted: </label><input type="checkbox" name="videoInvert" class="togglesmall"></input></td>
+                            </tr>
+                          </table>
+                        </div>
+                    </div>
                     <div class="gui_box grey units-container requires-osd-feature" style="display:none;">
                         <div class="gui_box_titlebar">
                             <div class="spacer_box_title">Units
