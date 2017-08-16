@@ -1235,30 +1235,31 @@ TABS.osd.initialize = function (callback) {
               $('.video-brightness-container').show();
               
               // invert video overlay?
-              var $videoInvert = $('input[name="videoInvert"]');
-              $videoInvert.prop('checked', OSD.data.invert);
-              $videoInvert.change(function (){
+              var $videoInvert = $('.videoInvert').empty(); //input[name="videoInvert2"]').empty();
+              
+              var $checkbox = $('<input type="checkbox" class="togglesmall"/>');
+              $checkbox.prop('checked', OSD.data.invert);
+              $checkbox.change(function (){
                 OSD.data.invert = $(this).prop('checked');
                 MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
                 .then(function() {
                   updateOsdView();
                 });
               });
+              $videoInvert.append("<label>Invert: </label>");
+              $videoInvert.append($checkbox);
               
+
+              var $videoBrightnessWhite = $('.videoBrightnessWhite').empty();
+              var $wnumber = $('<input type="number" step="1" min="0" max="100"/>').val(OSD.data.brightness.white);
+              var $wrange = $('<input type="range"step="0" min="0" max="100"/>').val(OSD.data.brightness.white);
               
-              var videoBrightnessWhiteNumberElement = $('input[name="videoBrightnessWhite-number"]');
-              var videoBrightnessWhiteRangeElement = $('input[name="videoBrightnessWhite-range"]');
-              
-              // set current value
-              videoBrightnessWhiteNumberElement.val(OSD.data.brightness.white);
-              videoBrightnessWhiteRangeElement.val(OSD.data.brightness.white);
-              
-              videoBrightnessWhiteNumberElement.change(function () {
-                videoBrightnessWhiteRangeElement.val($(this).val());
+              $wnumber.change(function () {
+                $wrange.val($(this).val());
                 OSD.data.brightness.white = $(this).val();
               });
-              videoBrightnessWhiteRangeElement.change(function () {
-                videoBrightnessWhiteNumberElement.val($(this).val());
+              $wrange.change(function () {
+                $wnumber.val($(this).val());
                 OSD.data.brightness.white = $(this).val();
                 MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
                 .then(function() {
@@ -1266,25 +1267,30 @@ TABS.osd.initialize = function (callback) {
                 });
               });
             
-              var videoBrightnessBlackNumberElement = $('input[name="videoBrightnessBlack-number"]');
-              var videoBrightnessBlackRangeElement = $('input[name="videoBrightnessBlack-range"]');
+              $videoBrightnessWhite.append($wnumber);
+              $videoBrightnessWhite.append($wrange);
+              $videoBrightnessWhite.append('<label> WHITE</label>');
               
-              videoBrightnessBlackNumberElement.val(OSD.data.brightness.black);
-              videoBrightnessBlackRangeElement.val(OSD.data.brightness.black);
+              var $videoBrightnessBlack = $('.videoBrightnessBlack').empty();
+              var $bnumber = $('<input type="number" step="1" min="0" max="100"/>').val(OSD.data.brightness.black);
+              var $brange = $('<input type="range"step="0" min="0" max="100"/>').val(OSD.data.brightness.black);
               
-              videoBrightnessBlackNumberElement.change(function () {
-                videoBrightnessBlackRangeElement.val($(this).val());
+              $bnumber.change(function () {
+                $brange.val($(this).val());
                 OSD.data.brightness.black = $(this).val();
               });
-              videoBrightnessBlackRangeElement.change(function () {
-                videoBrightnessBlackNumberElement.val($(this).val());
+              $brange.change(function () {
+                $bnumber.val($(this).val());
                 OSD.data.brightness.black = $(this).val();
                 MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
                 .then(function() {
                   updateOsdView();
                 });
               });
-              
+            
+              $videoBrightnessBlack.append($bnumber);
+              $videoBrightnessBlack.append($brange);
+              $videoBrightnessBlack.append('<label> BLACK</label>');
               
             }
 
