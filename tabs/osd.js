@@ -231,7 +231,8 @@ OSD.initData = function() {
     tooltips: [],
     display_size: { x: 0, y: 0, total: 0 },
     brightness: { black: 0, white: 0},
-    invert : false
+    supportedFeatures : 0,
+    enabledFeatures : 0
   };
 };
 OSD.initData();
@@ -299,6 +300,17 @@ OSD.constants = {
   },
   AHISIDEBARWIDTHPOSITION: 7,
   AHISIDEBARHEIGHTPOSITION: 3,
+
+  FEATURES: {
+    'Enabled'   : (1 << 0),
+    'Inverted'  : (1 << 1),
+    // skip brightness 'Brightness' = (1<<2),
+    'Logo'      : (1 << 8),
+    'Pilotlogo' : (1 << 9),
+    'Sticks'    : (1 << 10),
+    'Spectrum'  : (1 << 11),
+    'Crosshair' : (1 << 12)
+  },
 
   // All display fields, from every version, do not remove elements, only add!
   ALL_DISPLAY_FIELDS: {
@@ -914,7 +926,7 @@ OSD.msp = {
     var result = [-1, OSD.data.video_system];
     if (OSD.data.state.haveOsdFeature && semver.gte(CONFIG.apiVersion, "1.36.0")) {
       result.push8(OSD.data.device);
-      result.push8(OSD.data.invert);
+      result.push16(OSD.data.enabledFeatures);
       result.push8(OSD.data.brightness.black);
       result.push8(OSD.data.brightness.white);
     }
@@ -976,7 +988,8 @@ OSD.msp = {
           d.device = view.readU8();
           d.display_size.y   = view.readU8();
           d.display_size.x   = view.readU8();
-          d.invert           = view.readU8();
+          d.supportedFeatures = view.readU16();
+          d.enabledFeatures  = view.readU16();
           d.brightness.black = view.readU8();
           d.brightness.white = view.readU8();
         }
@@ -1231,25 +1244,63 @@ TABS.osd.initialize = function (callback) {
             });
             
             if (semver.gte(CONFIG.apiVersion, "1.36.0")) {
+             
+              if (OSD.data.supportedFeatures !== 0) {
+                // featureset
+                $('.video-features-container').show();
+                var $videoFeatures = $('.osd_features').empty();
+                
+                var $enabledFeatureUpdateFunction = function(){
+                  if ($(this).prop('checked')) {
+                    OSD.data.enabledFeatures |= $(this).data('flag');
+                  } else {
+                    OSD.data.enabledFeatures &= ~$(this).data('flag');
+                  }
+                  MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
+                  .then(function() {
+                    updateOsdView();
+                  });
+                };
+                
+                // add all items:
+                for (var $featureKey in OSD.constants.FEATURES) {
+                  var $featureFlag = OSD.constants.FEATURES[$featureKey];
+                  
+                  if (OSD.data.supportedFeatures & $featureFlag) {
+                    var $checkbox = $('<input type="checkbox" class="togglesmall"/>');
+                    
+                    $checkbox.prop('checked', (OSD.data.enabledFeatures & $featureFlag) ? true : false);
+                    $checkbox.data('flag', $featureFlag);
+                    
+                    $checkbox.change($enabledFeatureUpdateFunction);
+                  
+                    
+                    var $field = $('<div class="switchable-field"/>');
+                    $field.append($checkbox)
+                    $field.append('<label>'+$featureKey+'</label');
+                    $videoFeatures.append($field);
+                  }
+                }
+              }
+              
+              // invert video overlay?
+              //var $videoInvert = $('.videoInvert').empty(); //input[name="videoInvert2"]').empty();
+              //
+              //var $checkbox = $('<input type="checkbox" class="togglesmall"/>');
+              //$checkbox.prop('checked', OSD.data.invert);
+              //$checkbox.change(function (){
+                //OSD.data.invert = $(this).prop('checked');
+                //MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
+                //.then(function() {
+                  //updateOsdView();
+//                });
+              //});
+              //$videoInvert.append("<label>Invert: </label>");
+              //$videoInvert.append($checkbox);
+               
               // video brightness
               $('.video-brightness-container').show();
               
-              // invert video overlay?
-              var $videoInvert = $('.videoInvert').empty(); //input[name="videoInvert2"]').empty();
-              
-              var $checkbox = $('<input type="checkbox" class="togglesmall"/>');
-              $checkbox.prop('checked', OSD.data.invert);
-              $checkbox.change(function (){
-                OSD.data.invert = $(this).prop('checked');
-                MSP.promise(MSPCodes.MSP_SET_OSD_CONFIG, OSD.msp.encodeOther())
-                .then(function() {
-                  updateOsdView();
-                });
-              });
-              $videoInvert.append("<label>Invert: </label>");
-              $videoInvert.append($checkbox);
-              
-
               var $videoBrightnessWhite = $('.videoBrightnessWhite').empty();
               var $wnumber = $('<input type="number" step="1" min="0" max="100"/>').val(OSD.data.brightness.white);
               var $wrange = $('<input type="range"step="0" min="0" max="100"/>').val(OSD.data.brightness.white);
