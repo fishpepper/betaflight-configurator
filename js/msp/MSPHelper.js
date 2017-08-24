@@ -1095,6 +1095,32 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 console.log('OSD char uploaded');
                 break;
             case MSPCodes.MSP_VTX_CONFIG:
+                if (semver.gte(CONFIG.apiVersion, "1.36.0")) { // should be 1.37.0
+                  var deviceType = data.readU8();
+                  
+                  if (deviceType != 0) {
+                    VTX_CONFIG.band = data.readU8();
+                    VTX_CONFIG.channel = data.readU8();
+                    VTX_CONFIG.powerIdx = data.readU8();
+                    VTX_CONFIG.pitmode = data.readU8();
+                  
+                    // fetch supported bands
+                    var bandCount = data.readU8();
+                    for (var i=0; i<bandCount; i++) {
+                      VTX_CONFIG.bandNames.push(data.readString());
+                    }
+                    // fetch supported channels
+                    var channelCount = data.readU8();
+                    for (var i=0; i<channelCount; i++) {
+                      VTX_CONFIG.channelNames.push(data.readString());
+                    }
+                    // fetch supported powers
+                    var powerCount = data.readU8();
+                    for (var i=0; i<powerCount; i++) {
+                      VTX_CONFIG.powerNames.push(data.readString());
+                    } 
+                  }
+                }
                 break;
             case MSPCodes.MSP_SET_VTX_CONFIG:
                 break;

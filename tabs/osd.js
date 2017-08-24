@@ -305,11 +305,10 @@ OSD.constants = {
     'Enabled'   : (1 << 0),
     'Inverted'  : (1 << 1),
     // skip brightness 'Brightness' = (1<<2),
-    'Logo'      : (1 << 8),
+    'Logo (on startup)'      : (1 << 8),
     'Pilotlogo' : (1 << 9),
     'Sticks'    : (1 << 10),
-    'Spectrum'  : (1 << 11),
-    'Crosshair' : (1 << 12)
+    'Spectrum'  : (1 << 11)
   },
 
   // All display fields, from every version, do not remove elements, only add!
@@ -1665,6 +1664,7 @@ TABS.osd.initialize = function (callback) {
             var $preview = $('.display-layout .preview').empty();
             
             $('.display-layout .preview').width((OSD.data.display_size.x * FONT.constants.SIZES.CHAR_WIDTH) + "px");
+            $('.display-layout').width((OSD.data.display_size.x * FONT.constants.SIZES.CHAR_WIDTH) + "px");
             var $row = $('<div class="row"/>');
             for (var y=0; y < OSD.data.display_size.y; y++) {
               for (var x=0; x < OSD.data.display_size.x; x++) {

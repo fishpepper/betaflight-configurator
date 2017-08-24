@@ -90,3 +90,19 @@ DataView.prototype.read32 = function() {
         return null;
     }
 };
+
+DataView.prototype.readString = function() {
+    var text = "";
+    do {
+        var ch;
+        if (this.byteLength >= this.offset+1) {
+            ch = this.getUint8(this.offset++);
+        } else {
+            return null;
+        }
+        if (ch != 0) {
+            text += String.fromCharCode(ch);
+        }
+    } while ((ch != null) && (ch != 0));
+    return text;
+};

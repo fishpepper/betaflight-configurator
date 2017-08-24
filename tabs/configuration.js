@@ -139,9 +139,18 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
     }
 
     function load_rx_config() {
-        var next_callback = load_html;
+        var next_callback = load_vtx_config;
         if (semver.gte(CONFIG.apiVersion, "1.31.0")) {
             MSP.send_message(MSPCodes.MSP_RX_CONFIG, false, false, next_callback);
+        } else {
+            next_callback();
+        }
+    }
+    
+    function load_vtx_config() {
+        var next_callback = load_html;
+        if (semver.gte(CONFIG.apiVersion, "1.36.0")) { // should be 1.37.0
+            MSP.send_message(MSPCodes.MSP_VTX_CONFIG, false, false, next_callback);
         } else {
             next_callback();
         }
@@ -455,7 +464,8 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             'XBUS_MODE_B',
             'XBUS_MODE_B_RJ01'
         ];
-
+        
+      
         if (semver.gte(CONFIG.apiVersion, "1.15.0")) {
             serialRXtypes.push('IBUS');
         }
@@ -488,6 +498,37 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
 
         // select current serial RX type
         serialRX_e.val(RX_CONFIG.serialrx_provider);
+        
+        
+         // VTX tab
+        if (semver.gte(CONFIG.apiVersion, "1.36.0")) { // should become 1.37
+          
+          var VTXtypes = [
+            'none',
+            'Smartaudio',
+            'Tramp',
+            'RTC6705',
+            'openTCO'
+          ];
+          
+          var vtxSelection = $('select.vtx-device');
+          for (var i = 0; i < VTXtypes.length; i++) {
+            vtxSelection.append('<option value="' + i + '">' + VTXtypes[i] + '</option>');
+          }
+          
+          var bandSelection = $('select.vtx-band');
+          for (var i = 0; i < VTX_CONFIG.bandNames.length; i++) {
+            bandSelection.append('<option value="' + i + '">' + VTX_CONFIG.bandNames[i] + '</option>');
+          }
+
+          
+          vtxSelection.change(function () {
+            VTX_CONFIG.device = parseInt($(this).val());
+          });
+
+
+        }
+        
 
         // for some odd reason chrome 38+ changes scroll according to the touched select element
         // i am guessing this is a bug, since this wasn't happening on 37
@@ -553,6 +594,14 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
                 $('.gpsSettings').hide();
             }
         }
+        
+        function checkUpdateVTXControls() {
+            if (FEATURE_CONFIG.features.isEnabled('VTX')) {
+                $('.vtxSettings').show();
+            } else {
+                $('.vtxSettings').hide();
+            }
+        }
 
         function checkUpdate3dControls() {
             if (FEATURE_CONFIG.features.isEnabled('3D')) {
@@ -580,6 +629,10 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
                 case '3D':
                     checkUpdate3dControls();
                     break;
+                    
+                case 'VTX':
+                  checkUpdateVTXControls();
+                  break;
                     
                 default:
                     break;

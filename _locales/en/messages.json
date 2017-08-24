@@ -736,6 +736,12 @@
     "configurationGPSHelp": {
         "message": "<strong>Note:</strong> Remember to configure a Serial Port (via Ports tab) when using GPS feature."
     },
+    "configurationVTX": {
+        "message": "VTX"
+    },
+    "configurationVXTDevice": {
+        "message": "VTX output device"
+    },
     "configurationSerialRX": {
         "message": "Serial Receiver Provider"
     },

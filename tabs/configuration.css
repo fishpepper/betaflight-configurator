@@ -322,6 +322,11 @@
     width: 38px;
 }
 
+.tab-configuration .vtx td:nth-child(2) {
+    width: 38px;
+}
+
+
 .tab-configuration .other tr:last-child td {
     border-bottom: 0px;
     padding-bottom: 0px;
@@ -525,6 +530,9 @@
         float: left;
     }
     .tab-configuration .gps .gui_box, .tab-configuration .other .gui_box {
+        float: left;
+    }
+    .tab-configuration .vtx .gui_box, .tab-configuration .other .gui_box {
         float: left;
     }
     .tab-configuration .current .gui_box {

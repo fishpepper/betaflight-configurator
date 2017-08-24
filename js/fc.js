@@ -53,6 +53,7 @@ var PID_ADVANCED_CONFIG;
 var FILTER_CONFIG;
 var ADVANCED_TUNING;
 var SENSOR_CONFIG;
+var VTX_CONFIG;
 
 var FC = {
     resetState: function() {
@@ -368,5 +369,16 @@ var FC = {
         };
 
         RXFAIL_CONFIG = [];
+        
+        VTX_CONFIG = {
+            device:        0,
+            band:          0,
+            bandNames: [],
+            channel:       0,
+            channelNames: [],
+            powerIndex:    0,
+            powerNames: [],
+            pitMode:       false,
+        };
     }
 };
