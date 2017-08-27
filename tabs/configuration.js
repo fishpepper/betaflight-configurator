@@ -515,18 +515,34 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
           for (var i = 0; i < VTXtypes.length; i++) {
             vtxSelection.append('<option value="' + i + '">' + VTXtypes[i] + '</option>');
           }
+          vtxSelection.val(VTX_CONFIG.device);
+          vtxSelection.change(function () { VTX_CONFIG.device = parseInt($(this).val());});
           
           var bandSelection = $('select.vtx-band');
           for (var i = 0; i < VTX_CONFIG.bandNames.length; i++) {
             bandSelection.append('<option value="' + i + '">' + VTX_CONFIG.bandNames[i] + '</option>');
           }
-
+          bandSelection.val(VTX_CONFIG.band);
+          bandSelection.change(function () { VTX_CONFIG.band = parseInt($(this).val());});
           
-          vtxSelection.change(function () {
-            VTX_CONFIG.device = parseInt($(this).val());
-          });
-
-
+          var channelSelection = $('select.vtx-channel');
+          for (var i = 0; i < VTX_CONFIG.channelNames.length; i++) {
+            channelSelection.append('<option value="' + i + '">' + VTX_CONFIG.channelNames[i] + '</option>');
+          }
+          channelSelection.val(VTX_CONFIG.channel);
+          channelSelection.change(function () { VTX_CONFIG.channel = parseInt($(this).val());});
+          
+          var powerSelection = $('select.vtx-power');
+          for (var i = 0; i < VTX_CONFIG.powerNames.length; i++) {
+            if (VTX_CONFIG.powerNames[i] !== "") {
+              powerSelection.append('<option value="' + i + '">' + VTX_CONFIG.powerNames[i] + '</option>');
+            }
+          }
+          powerSelection.val(VTX_CONFIG.power);
+          powerSelection.change(function () { VTX_CONFIG.power = parseInt($(this).val());});
+          
+          
+          checkUpdateVTXControls();
         }
         
 

@@ -1105,16 +1105,19 @@ MspHelper.prototype.process_data = function(dataHandler) {
                     VTX_CONFIG.pitmode = data.readU8();
                   
                     // fetch supported bands
+                    VTX_CONFIG.bandNames.empty();
                     var bandCount = data.readU8();
                     for (var i=0; i<bandCount; i++) {
                       VTX_CONFIG.bandNames.push(data.readString());
                     }
                     // fetch supported channels
+                    VTX_CONFIG.channelNames.empty();
                     var channelCount = data.readU8();
                     for (var i=0; i<channelCount; i++) {
                       VTX_CONFIG.channelNames.push(data.readString());
                     }
                     // fetch supported powers
+                    VTX_CONFIG.powerNames.empty();
                     var powerCount = data.readU8();
                     for (var i=0; i<powerCount; i++) {
                       VTX_CONFIG.powerNames.push(data.readString());

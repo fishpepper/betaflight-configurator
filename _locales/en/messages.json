@@ -739,8 +739,17 @@
     "configurationVTX": {
         "message": "VTX"
     },
-    "configurationVXTDevice": {
-        "message": "VTX output device"
+    "configurationVTXDevice": {
+        "message": "Output device"
+    },
+    "configurationVTXBand": {
+        "message": "Band"
+    },
+    "configurationVTXChannel": {
+        "message": "Channel"
+    },
+    "configurationVTXPower": {
+        "message": "Transmission Power"
     },
     "configurationSerialRX": {
         "message": "Serial Receiver Provider"
