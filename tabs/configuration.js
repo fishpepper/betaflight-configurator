@@ -519,14 +519,16 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
           vtxSelection.change(function () { VTX_CONFIG.device = parseInt($(this).val());});
           
           var bandSelection = $('select.vtx-band');
-          for (var i = 0; i < VTX_CONFIG.bandNames.length; i++) {
+          // do not show index zero, start with one
+          for (var i = 1; i < VTX_CONFIG.bandNames.length; i++) {
             bandSelection.append('<option value="' + i + '">' + VTX_CONFIG.bandNames[i] + '</option>');
           }
           bandSelection.val(VTX_CONFIG.band);
           bandSelection.change(function () { VTX_CONFIG.band = parseInt($(this).val());});
           
           var channelSelection = $('select.vtx-channel');
-          for (var i = 0; i < VTX_CONFIG.channelNames.length; i++) {
+          // do not show index zero, start with one
+          for (var i = 1; i < VTX_CONFIG.channelNames.length; i++) {
             channelSelection.append('<option value="' + i + '">' + VTX_CONFIG.channelNames[i] + '</option>');
           }
           channelSelection.val(VTX_CONFIG.channel);
@@ -538,8 +540,8 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
               powerSelection.append('<option value="' + i + '">' + VTX_CONFIG.powerNames[i] + '</option>');
             }
           }
-          powerSelection.val(VTX_CONFIG.power);
-          powerSelection.change(function () { VTX_CONFIG.power = parseInt($(this).val());});
+          powerSelection.val(VTX_CONFIG.powerIndex);
+          powerSelection.change(function () { VTX_CONFIG.powerIndex = parseInt($(this).val());});
           
           
           checkUpdateVTXControls();
@@ -834,9 +836,18 @@ TABS.configuration.initialize = function (callback, scrollPosition) {
             }
 
             function save_rx_config() {
-                var next_callback = save_to_eeprom;
+                var next_callback = save_vtx_config;
                 if (semver.gte(CONFIG.apiVersion, "1.20.0")) {
                     MSP.send_message(MSPCodes.MSP_SET_RX_CONFIG, mspHelper.crunch(MSPCodes.MSP_SET_RX_CONFIG), false, next_callback);
+                } else {
+                    next_callback();
+                }
+            }
+            
+            function save_vtx_config() {
+                var next_callback = save_to_eeprom;
+                if (semver.gte(CONFIG.apiVersion, "1.36.0")) { // should be 1.37.0
+                    MSP.send_message(MSPCodes.MSP_SET_VTX_CONFIG, mspHelper.crunch(MSPCodes.MSP_SET_VTX_CONFIG), false, next_callback);
                 } else {
                     next_callback();
                 }

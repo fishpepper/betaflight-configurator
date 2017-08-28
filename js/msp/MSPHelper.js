@@ -1096,28 +1096,28 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 break;
             case MSPCodes.MSP_VTX_CONFIG:
                 if (semver.gte(CONFIG.apiVersion, "1.36.0")) { // should be 1.37.0
-                  var deviceType = data.readU8();
+                  VTX_CONFIG.device = data.readU8();
                   
-                  if (deviceType != 0) {
-                    VTX_CONFIG.band = data.readU8();
-                    VTX_CONFIG.channel = data.readU8();
-                    VTX_CONFIG.powerIdx = data.readU8();
+                  if (VTX_CONFIG.device != 0) {
+                    VTX_CONFIG.band = data.readU8() + 1;
+                    VTX_CONFIG.channel = data.readU8() + 1;
+                    VTX_CONFIG.powerIndex = data.readU8();
                     VTX_CONFIG.pitmode = data.readU8();
                   
                     // fetch supported bands
-                    VTX_CONFIG.bandNames.empty();
+                    VTX_CONFIG.bandNames = ["---"];
                     var bandCount = data.readU8();
                     for (var i=0; i<bandCount; i++) {
                       VTX_CONFIG.bandNames.push(data.readString());
                     }
                     // fetch supported channels
-                    VTX_CONFIG.channelNames.empty();
+                    VTX_CONFIG.channelNames = ["---"];
                     var channelCount = data.readU8();
                     for (var i=0; i<channelCount; i++) {
                       VTX_CONFIG.channelNames.push(data.readString());
                     }
                     // fetch supported powers
-                    VTX_CONFIG.powerNames.empty();
+                    VTX_CONFIG.powerNames = [];
                     var powerCount = data.readU8();
                     for (var i=0; i<powerCount; i++) {
                       VTX_CONFIG.powerNames.push(data.readString());
@@ -1126,6 +1126,7 @@ MspHelper.prototype.process_data = function(dataHandler) {
                 }
                 break;
             case MSPCodes.MSP_SET_VTX_CONFIG:
+                console.log('vtx config saved');
                 break;
             case MSPCodes.MSP_SET_NAME:
                 console.log('Name set');
@@ -1322,6 +1323,13 @@ MspHelper.prototype.crunch = function(code) {
                 }
             }
 
+            break;
+            
+        case MSPCodes.MSP_SET_VTX_CONFIG:
+            var bandAndChannel = ((VTX_CONFIG.band - 1) * 8) + (VTX_CONFIG.channel - 1);
+            buffer.push16(bandAndChannel);
+            buffer.push8(VTX_CONFIG.powerIndex);
+            buffer.push8(VTX_CONFIG.pitmode);
             break;
 
         case MSPCodes.MSP_SET_FAILSAFE_CONFIG:
