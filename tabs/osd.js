@@ -1203,7 +1203,7 @@ TABS.osd.initialize = function (callback) {
                 'none',
                 'MAX7456',
                 'MSP',
-                'tinyOSD'
+                'openTCO'
               ];
       
               var osd_e = $('select.osd_device').empty();;
